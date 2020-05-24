@@ -1,0 +1,72 @@
+{
+  "name": "edit-config",
+  "version": "1.0.0",
+  "description": "Read, manipulate, write configuration files.",
+  "keywords": ["config", "configuration", "data file", "json", "yaml"],
+  "homepage": "https://github.com/ozum/edit-config",
+  "bugs": "https://github.com/ozum/edit-config/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ozum/edit-config.git"
+  },
+  "author": "Özüm Eldoğan",
+  "module": "dist/edit-config.esm.js",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": ["dist"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "file:watch": "ts-node-dev --no-notify --respawn --transpileOnly --compiler-options '{ \"module\": \"commonjs\" }'",
+    "start": "tsdx watch",
+    "build": "tsc",
+    "test": "tsdx test",
+    "lint": "tsdx lint",
+    "prepare": "tsdx build",
+    "release": "git push --follow-tags origin master && npm publish"
+  },
+  "peerDependencies": {},
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsdx lint"
+    }
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^9.0.1",
+    "@types/js-yaml": "^3.12.4",
+    "@types/lodash.get": "^4.4.2",
+    "@types/lodash.has": "^4.5.2",
+    "@types/lodash.isequal": "^4.5.0",
+    "@types/lodash.merge": "^4.6.6",
+    "@types/lodash.set": "^4.3.2",
+    "@types/lodash.unset": "^4.5.2",
+    "@typescript-eslint/eslint-plugin": "^2.34.0",
+    "@typescript-eslint/parser": "^2.34.0",
+    "eslint": "^7.0.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-jest": "^23.13.1",
+    "eslint-plugin-prettier": "^3.1.3",
+    "husky": "^4.2.5",
+    "prettier": "^2.0.5",
+    "ts-node-dev": "^1.0.0-pre.44",
+    "tsdx": "^0.13.2",
+    "tslib": "^2.0.0",
+    "typescript": "^3.9.3"
+  },
+  "dependencies": {
+    "chalk": "^4.0.0",
+    "comment-json": "^3.0.2",
+    "fs-extra": "^9.0.0",
+    "js-yaml": "^3.13.1",
+    "lodash.get": "^4.4.2",
+    "lodash.has": "^4.5.2",
+    "lodash.isequal": "^4.5.0",
+    "lodash.merge": "^4.6.2",
+    "lodash.set": "^4.3.2",
+    "lodash.unset": "^4.5.2"
+  }
+}

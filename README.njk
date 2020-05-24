@@ -1,0 +1,51 @@
+{% include "module-header" %}
+
+# Synopsis
+
+```ts
+import { DataFile, Manager, get, has, isEqual } from "edit-config";
+
+// Optional logger. Default logger is console.
+const winstonLogger = createLogger({
+  level: "debug",
+  format: format.combine(format.colorize(), format.splat(), format.simple()),
+  transports: [new transports.Console()],
+});
+
+// Create manager and load files.
+const manager = new Manager({ root: ".", logger: winstonLogger });
+const [packageJson, tsconfig] = await manager.loadAll(["package.json", "tsconfig.json"]);
+
+packageJson.set("scripts.build", "tsc");
+packageJson.set("scripts.build", "tsc", (value) => value === undefined);
+packageJson.merge("scripts", { build: "tsc", test: "jest" }, (value, key, data, path, rootData) => rootData.get("scripts") === undefined);
+
+tsconfig.set("compilerOptions.target", "esnext");
+
+await manager.saveAll();
+```
+
+It is possible to use `DataFile` directly without manager.
+
+```ts
+const packageJson = await DataFile.load("package.json");
+```
+
+
+# Details
+
+`Manager` and `DataFile` classes proivdes utility methods for loading, manipulating and saving `JSON` and `YAML` configuration files.
+
+**Highlights:**
+
+* `load()` and `loadAll()` do not throw even files do not exist. Instead return default data (if provided), or empty object.
+* Data manipulation operations do not write to disk until `save()` or `saveAll()` called.
+* `Manager.load()` and `Manager.loadAll()` methods cache loaded files and return cached results in consequencing calls. Use `DataFile.reload()` to reload from disk.
+<!-- usage -->
+
+<!-- commands -->
+
+# API
+
+{% include "api.md" %}
+
