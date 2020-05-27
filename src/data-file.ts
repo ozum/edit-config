@@ -1,55 +1,79 @@
+/* eslint-disable no-param-reassign */
+import { Options as CosmiconfigOptions } from "cosmiconfig";
 import commentJson from "comment-json";
 import yaml from "js-yaml";
-import { extname } from "path";
+import { relative, normalize } from "path";
 import { outputFile } from "fs-extra";
 import get from "lodash.get";
 import set from "lodash.set";
 import has from "lodash.has";
 import merge from "lodash.merge";
 import unset from "lodash.unset";
-import { Logger, LogLevel, FileFormat, PrettierConfig, DataPath, PredicateFn } from "./types";
+import { Key, Logger, LogLevel, FileFormat, PrettierConfig, DataPath, PredicateFunction, StringDataPath } from "./types";
+
 import {
-  supportedFileExtensions,
-  filterArray,
-  orderKeys,
-  readFileTolerated,
+  sortKeys,
   getPrettierConfig,
   prettier,
   getStringPath,
   predicate,
   em,
+  readData,
+  getCosmiconfigResult,
+  evaluate,
+  isManipulationOptions,
+  getArrayPath,
 } from "./helper";
 
 /**
- * Manages and edit a configuration data file.
+ * Read, edit and write configuration files.
  */
 export default class DataFile {
   /** Actual data */
   public data: object;
 
-  readonly #defaultData: object;
+  readonly #defaultData?: object;
   readonly #path: string;
   readonly #format: FileFormat;
   readonly #logger: Logger;
-  readonly #shortPath: string;
-  readonly #modifiedKeys: { set: Set<string>; deleted: Set<string> } = { set: new Set(), deleted: new Set() };
+  readonly #rootDir?: string;
+  readonly #modifiedKeys: { set: Set<StringDataPath>; deleted: Set<StringDataPath> } = { set: new Set(), deleted: new Set() };
+
+  readonly #rootDataPath?: string[];
+
   #prettierConfig?: PrettierConfig;
 
-  private constructor(
+  protected constructor(
     path: string,
     data: object,
     format: FileFormat,
     logger: Logger,
-    defaultData: object,
-    options: { prettierConfig?: PrettierConfig; shortPath?: string }
+    options: {
+      defaultData?: object;
+      prettierConfig?: PrettierConfig;
+      shortPath?: string;
+      rootDataPath?: DataPath;
+      rootDir?: string;
+    }
   ) {
     this.#path = path;
     this.data = data;
     this.#format = format;
     this.#logger = logger;
     this.#prettierConfig = options.prettierConfig;
-    this.#shortPath = options.shortPath || path;
-    this.#defaultData = defaultData;
+    this.#rootDir = options.rootDir;
+    this.#defaultData = options.defaultData;
+    this.#rootDataPath = options.rootDataPath ? (getArrayPath(options.rootDataPath) as string[]) : undefined;
+  }
+
+  /** File path relative to root. */
+  private get shortPath(): string {
+    return normalize(this.#rootDir ? relative(this.#rootDir, this.#path) : this.#path);
+  }
+
+  /** Whether file can be saved using this library. */
+  public get canSave(): boolean {
+    return this.#format !== FileFormat.Js;
   }
 
   /**
@@ -59,12 +83,11 @@ export default class DataFile {
    * @returns whether path exists.
    *
    * @example
-   * const packageJson = await DataFile.get("package.json");
-   * packageJson.has("script.build");
-   * packageJson.has(["script", "build"]);
+   * dataFile.has("script.build");
+   * dataFile.has(["script", "build"]);
    */
   public has(path: DataPath): boolean {
-    return has(this.data, path);
+    return has(this.data, path as any);
   }
 
   /**
@@ -75,12 +98,11 @@ export default class DataFile {
    * @returns data stored in given object path or default value.
    *
    * @example
-   * const packageJson = await DataFile.get("package.json");
-   * packageJson.get("script.build");
-   * packageJson.get(["script", "build"]);
+   * dataFile.get("script.build");
+   * dataFile.get(["script", "build"]);
    */
   public get(path: DataPath, defaultValue?: any): any {
-    return get(this.data, path, defaultValue);
+    return get(this.data, path as any, defaultValue);
   }
 
   /**
@@ -88,19 +110,19 @@ export default class DataFile {
    * Arrays are created for missing index properties while objects are created for all other missing properties.
    *
    * @param path is data path of the property to set.
-   * @param value is value to set.
-   * @param predicateFn is the function to test whether operation should be performed. If result is false, operation is not performed.
+   * @param value is value to set or a function which returns value to be set.
+   * @param options are options
+   * @param options.if is the function to test whether operation should be performed. If result is false, operation is not performed.
    *
    * @example
-   * const packageJson = targetModule.getDataFileSync("package.json"); // `DataFile` instance
-   * packageJson
+   * dataFile
    *   .set("script.build", "tsc")
-   *   .set(["scripts", "test"], "jest", (value) => value !== "mocha");
+   *   .set(["scripts", "test"], "jest", { if: (value) => value !== "mocha" });
    */
-  public set(path: DataPath, value: any, predicateFn?: PredicateFn): this {
-    const shouldDo = predicate(predicateFn, this, path);
+  public set(path: DataPath, value: any, options: { if?: PredicateFunction } = {}): this {
+    const shouldDo = predicate(options.if, this, path);
     if (shouldDo) {
-      set(this.data, path, value);
+      set(this.data, path as any, evaluate(value, this, path));
       this.#modifiedKeys.set.add(getStringPath(path));
     }
     this.logOperation("set", shouldDo, path);
@@ -111,18 +133,18 @@ export default class DataFile {
    * Deletes the property at `path` of file data.
    *
    * @param path is data path of the property to delete.
-   * @param predicateFn is the function to test whether operation should be performed. If result is false, operation is not performed.
+   * @param options are options
+   * @param options.if is the function to test whether operation should be performed. If result is false, operation is not performed.
    *
    * @example
-   * const packageJson = targetModule.getDataFileSync("package.json"); // `DataFile` instance
-   * packageJson
+   * dataFile
    *   .delete("script.build")
-   *   .delete(["scripts", "test"], (value) => value !== "jest");
+   *   .delete(["scripts", "test"], { if: (value) => value !== "jest" });
    */
-  public delete(path: DataPath, predicateFn?: PredicateFn): this {
-    const shouldDo = predicate(predicateFn, this, path);
+  public delete(path: DataPath, options: { if?: PredicateFunction } = {}): this {
+    const shouldDo = predicate(options.if, this, path);
     if (shouldDo) {
-      unset(this.data, path);
+      unset(this.data, path as any);
       this.#modifiedKeys.deleted.add(getStringPath(path));
     }
     this.logOperation("unset", shouldDo, path);
@@ -130,46 +152,35 @@ export default class DataFile {
   }
 
   /**
-   * This method is like _.assign except that it recursively merges own and inherited enumerable string keyed properties of source objects
+   * This method is like assign except that it recursively merges own and inherited enumerable string keyed properties of source objects
    * into the destination object. Source properties that resolve to undefined are skipped if a destination value exists.
    * Array and plain object properties are merged recursively. Other objects and value types are overridden by assignment.
    * Source objects are applied from left to right. Subsequent sources overwrite property assignments of previous sources.
    *
-   * @param value is the object to merge given path.
-   * @param predicateFn is the function to test whether operation should be performed. If result is false, operation is not performed.
-   *
-   * @example
-   * const packageJson = targetModule.getDataFileSync("package.json"); // `DataFile` instance
-   * packageJson.assign({ name: "some-module", version: "1.0.0", }, (data) => data.name === "undefined");
-   */
-  public merge(value: any, predicateFn?: PredicateFn): this;
-  /**
-   * This method is like _.assign except that it recursively merges own and inherited enumerable string keyed properties of source objects
-   * into the destination object. Source properties that resolve to undefined are skipped if a destination value exists.
-   * Array and plain object properties are merged recursively. Other objects and value types are overridden by assignment.
-   * Source objects are applied from left to right. Subsequent sources overwrite property assignments of previous sources.
+   * If you would like merge root object (`this.data`), use empty array `[]` as path, because `undefined`, '' and `null` are valid object keys.
    *
    * @param path is data path of the property to delete.
-   * @param value is the object to merge given path.
+   * @param value is the object to merge given path or a function which returns object to be merged.
    * @param predicateFn is the function to test whether operation should be performed. If result is false, operation is not performed.
    *
    * @example
-   * const packageJson = targetModule.getDataFileSync("package.json"); // `DataFile` instance
-   * packageJson.assign("scripts", { build: "tsc", test: "jest", }, (scripts) => scripts.build !== "someCompiler");
+   * dataFile.merge("scripts", { build: "tsc", test: "jest", }, { if: (scripts) => scripts.build !== "someCompiler" });
+   * dataFile.merge([], { name: "my-module", version: "1.0.0" });
    */
-  public merge(path: DataPath, value: any, predicateFn?: PredicateFn): this;
-  public merge(pathOrValue: DataPath, valueOrPredicateFn: any, predicateFnOrVoid?: PredicateFn): this {
-    const isSecondArgCondition = typeof valueOrPredicateFn === "function";
-    const predicateFn = predicateFnOrVoid || (isSecondArgCondition ? valueOrPredicateFn : undefined);
-    const value = isSecondArgCondition ? pathOrValue : valueOrPredicateFn;
-    const path = isSecondArgCondition ? undefined : pathOrValue;
-    const targetData = path ? get(this.data, path) : this.data;
-    const shouldDo = !predicateFn || (path ? predicate(predicateFn, this, path) : predicateFn(this.data));
+  public merge(path: DataPath, ...valuesAndOptions: any[]): this {
+    const hasPath = !(Array.isArray(path) && path.length === 0);
+    const hasOptions = isManipulationOptions(valuesAndOptions[valuesAndOptions.length - 1]);
+    const object = hasPath ? this.get(path) : this.data;
+    const options = hasOptions ? valuesAndOptions[valuesAndOptions.length - 1] : {};
+    const values = hasOptions ? valuesAndOptions.slice(0, -1) : valuesAndOptions;
+    const shouldDo = predicate(options.if, this, path);
 
     if (shouldDo) {
-      if (path && !has(this.data, path)) set(this.data, path, value);
-      else merge(targetData, value);
+      const sources = values.map((value) => evaluate(value, this, path));
+      if (hasPath && !this.has(path)) this.set(path, merge({}, ...sources));
+      else merge(object, ...sources);
       this.logOperation("merge", shouldDo, path);
+      this.#modifiedKeys.set.add(getStringPath(path));
     }
 
     return this;
@@ -185,50 +196,68 @@ export default class DataFile {
    * @example
    * dataFile.getModifiedKeys({ include: "scripts", exclude: ["scripts.validate", "scripts.docs"] });
    */
-  public getModifiedKeys({ include, exclude }: { include?: string | string[]; exclude?: string | string[] } = {}): {
-    set: string[];
-    deleted: string[];
+  public getModifiedKeys({ filter }: { filter?: (path: Key[], type: "set" | "deleted") => boolean } = {}): {
+    set: StringDataPath[];
+    deleted: StringDataPath[];
   } {
-    const setFiltered = filterArray(Array.from(this.#modifiedKeys.set), { include, exclude });
-    const deletedFiltered = filterArray(Array.from(this.#modifiedKeys.deleted), { include, exclude });
-    return { set: setFiltered, deleted: deletedFiltered };
+    let setPaths = Array.from(this.#modifiedKeys.set);
+    let deletedPaths = Array.from(this.#modifiedKeys.deleted);
+
+    if (filter) {
+      setPaths = setPaths.filter((path) => filter(getArrayPath(path), "set"));
+      deletedPaths = deletedPaths.filter((path) => filter(getArrayPath(path), "deleted"));
+    }
+
+    return { set: setPaths, deleted: deletedPaths };
   }
 
   /**
    * When keys/values added which are previously does not exist, they are added to the end of the file during file write.
-   * This method allows reordering of the keys in given path. `keys` are placed at the beginning in given order whereas remaining keys
-   * of the object comes in their order of position.
+   * This method allows reordering of the keys in given path. Required keys may be put at the beginning and of the order.
    *
    * @param path is data path of the property to order keys of.
-   * @param keys are ordered keys to appear at the beginning of given path when saved.
+   * @param start are ordered keys to appear at the beginning of given path when saved.
+   * @param end are ordered keys to appear at the end of given path when saved.
    *
    * @example
-   * const packageJson = targetModule.getDataFileSync("package.json"); // `DataFile` instance
-   * packageJson.orderKeysOf("scripts", ["build", "lint"]); // Other keys come after.
+   * dataFile.sortKeys("scripts", { start: ["build", "lint"], end: {"dependencies", "devDependencies"} });
    */
-  public orderKeys(pathOrOptions?: DataPath, optionsOrVoid?: { start: string[]; end: string[] }): this {
-    const path = typeof pathOrOptions === "string" || Array.isArray(pathOrOptions) ? pathOrOptions : undefined;
-    const options: any = path === undefined ? pathOrOptions : optionsOrVoid;
+  // public sortKeys(path: DataPath, options?: { start: string[]; end: string[] }): this;
 
-    if (path && this.has(path)) {
-      set(this.data, path, orderKeys(this.get(path), options));
+  // public sortKeys(options?: { start: string[]; end: string[] }): this;
+
+  public sortKeys(path: DataPath, options?: { start: string[]; end: string[] }): this {
+    const hasPath = !(Array.isArray(path) && path.length === 0);
+    if (hasPath && this.has(path as any)) {
+      set(this.data, path as any, sortKeys(this.get(path), options));
     } else if (!path) {
-      this.data = orderKeys(this.data, options);
+      this.data = sortKeys(this.data, options);
     }
     return this;
   }
 
   /**
-   * Saves file.
+   * Saves file. If this is a partial data using `rootDataPath` option.
    */
-  public async save(): Promise<void> {
-    let content = this.#format === "json" ? commentJson.stringify(this.data, null, 2) : yaml.safeDump(this.data);
+  public async save({ jsLogLevel = LogLevel.Error, throwOnJs = true } = {}): Promise<void> {
+    if (this.#format === FileFormat.Js) {
+      this.#logger.log(jsLogLevel, `File not saved: '${em(this.shortPath)}'. Saving 'js' files are not supported.`);
+      if (throwOnJs) throw new Error(`Cannot save 'js' file: ${this.#path}`);
+      return;
+    }
+
+    // If this is a partial data of a file, reread and change only related part and then save.
+    const data = this.#rootDataPath
+      ? set((await readData(this.#path, this.#format, this.#defaultData || this.data)).data, this.#rootDataPath, this.data)
+      : this.data;
+
+    let content = this.#format === "json" ? commentJson.stringify(data, null, 2) : yaml.safeDump(data);
 
     if (this.#prettierConfig === undefined) this.#prettierConfig = (await getPrettierConfig(this.#path)) || null;
     if (this.#prettierConfig) content = prettier.format(content, { ...this.#prettierConfig, parser: this.#format });
 
     await outputFile(this.#path, content);
-    this.#logger.log(LogLevel.Info, `File saved: ${em(this.#shortPath)}`);
+    this.#logger.log(LogLevel.Info, `File saved: ${em(this.shortPath)}`);
   }
 
   /**
@@ -241,7 +270,7 @@ export default class DataFile {
   private logOperation(op: string, success: boolean, path?: DataPath): void {
     const not = success ? "" : "not ";
     const level = success ? LogLevel.Info : LogLevel.Warn;
-    this.#logger.log(level, `Key ${not}${op}: '${em(getStringPath(path || "[ROOT]"))}' in '${em(this.#shortPath)}' .`);
+    this.#logger.log(level, `Key ${not}${op}: '${em(getStringPath(path || "[ROOT]"))}' in '${em(this.shortPath)}' .`);
   }
 
   //
@@ -251,36 +280,10 @@ export default class DataFile {
   //
 
   /**
-   * Parses given string and returns format and object. If no format given, tries to parse first as json using JSON5, then yaml.
-   *
-   * @param content is string to parse
-   * @returns parsed object or input string.
-   * @throws `Error` if data cannot be parsed.
-   */
-  private static parseString<T extends object>(content: string): { format: FileFormat; data: T } {
-    const errors: Error[] = [];
-
-    try {
-      return { format: FileFormat.Json, data: commentJson.parse(content) };
-    } catch (error) {
-      errors.push(error);
-    }
-
-    try {
-      return { format: FileFormat.Yaml, data: yaml.safeLoad(content) };
-    } catch (error) {
-      errors.push(error);
-    }
-
-    const errorMessage = errors.reduce((previous, e) => `${previous}${e.name}: ${e.message}. `, "").trim();
-    throw new Error(`Cannot parse data as one of the supported formats of Supported formats are "json" and "yaml". ${errorMessage}`);
-  }
-
-  /**
    * Reads data from given file. If file is not present returns default data to be saved with {{save}} method.
    * @param path is ısuhsıu
    */
-  public static async load<T extends object = object>(
+  public static async load(
     path: string,
     {
       /** Default format to be used if file format cannot be determined from file name and content. */
@@ -290,43 +293,43 @@ export default class DataFile {
       /** Prettier configuration to be used. If not provided determined automatically. */
       prettierConfig,
       /** Default data to be used if file does not exist. */
-      defaultData = {} as T,
-      /** Short file path to be used in logs. */
-      shortPath = "",
+      defaultData,
+      /** Root directory for files. Used in logs for information purposes only. */
+      rootDir,
+      /** If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded. */
+      rootDataPath,
+      /** Whether to use {@link cosmiconfig https://www.npmjs.com/package/cosmiconfig} to load configuration. Set `true` for default cosmiconfig options or provide cosmiconfig options and `searchFrom` parameter. */
+      cosmiconfig = false,
     }: {
       defaultFormat?: FileFormat;
       logger?: Logger;
       prettierConfig?: PrettierConfig;
-      defaultData?: T;
-      shortPath?: string;
+      defaultData?: object;
+      rootDir?: string;
+      rootDataPath?: DataPath;
+      cosmiconfig?: boolean | { options?: CosmiconfigOptions; searchFrom?: string };
     } = {} as any
   ): Promise<DataFile> {
-    const fileExtension = extname(path).substring(1).toLowerCase();
-    const formatFromFileName = supportedFileExtensions[fileExtension as keyof typeof supportedFileExtensions];
+    if (cosmiconfig) {
+      const { options, searchFrom } = typeof cosmiconfig === "object" ? cosmiconfig : ({} as any);
+      const result = await getCosmiconfigResult(path, defaultFormat, defaultData || {}, options, searchFrom, rootDataPath);
+      return new DataFile(result.path, result.data, result.format, logger, {
+        defaultData,
+        prettierConfig,
+        rootDir,
+        rootDataPath: result.rootDataPath,
+      });
+    }
 
-    if (fileExtension !== "" && !formatFromFileName) throw new Error(`Umknown file type: ${fileExtension}`);
-
-    const content = await readFileTolerated(path);
-    const { data, format } =
-      content === undefined ? { data: defaultData, format: formatFromFileName || defaultFormat } : DataFile.parseString<T>(content);
-
-    return new DataFile(path, data, format, logger, defaultData, { prettierConfig, shortPath });
+    const { data, format } = await readData(path, defaultFormat, defaultData || {}, rootDataPath);
+    return new DataFile(path, data, format, logger, { defaultData, prettierConfig, rootDir, rootDataPath });
   }
 
   /**
    * Reload data from disk. If file is not present resets data to default data.
    */
   public async reload(): Promise<this> {
-    const content = await readFileTolerated(this.#path);
-    this.data = content ? DataFile.parseString(content).data : this.#defaultData;
+    this.data = (await readData(this.#path, this.#format, this.#defaultData || this.data, this.#rootDataPath)).data;
     return this;
   }
-
-  // public debug() {
-  //   // console.log(this.data);
-  //   console.log(this.#path);
-  //   console.log(this.#format);
-  //   console.log(this.data);
-  //   console.log(this.#modifiedKeys);
-  // }
 }

@@ -1,0 +1,12 @@
+{
+  "name": "example-package",
+  "counter":1,
+  "scripts": {
+    "test": "jest"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint"
+    }
+  }
+}

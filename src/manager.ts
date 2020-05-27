@@ -1,10 +1,11 @@
 import { join, isAbsolute, relative } from "path";
-import { Logger, PrettierConfig, FileFormat } from "./types";
+import { Options as CosmiconfigOptions } from "cosmiconfig";
+import { Logger, PrettierConfig, FileFormat, DataPath, LogLevel } from "./types";
 import DataFile from "./data-file";
 import { getPrettierConfig } from "./helper";
 
 /**
- * Manage multiple configuration files.
+ * Manage multiple configuration files using [[DataFile]].
  */
 export default class Manager {
   readonly #root: string;
@@ -35,11 +36,19 @@ export default class Manager {
    * @param options.defaultData is the default data to be used if file does not exist.
    * @returns [[DataFile]] instance.
    */
-  public async load(path: string, options: { defaultFormat?: FileFormat; defaultData?: any } = {}): Promise<DataFile> {
-    const fullPath = isAbsolute(path) ? path : join(this.#root, path);
+  public async load(
+    path: string,
+    options: {
+      defaultFormat?: FileFormat;
+      defaultData?: any;
+      rootDataPath?: DataPath;
+      cosmiconfig?: boolean | { options?: CosmiconfigOptions; searchFrom?: string };
+    } = {}
+  ): Promise<DataFile> {
+    const fullPath = isAbsolute(path) || options.cosmiconfig ? path : join(this.#root, path);
     if (this.#prettierConfig === undefined) this.#prettierConfig = (await getPrettierConfig(fullPath)) || null;
     if (!this.#files[path]) {
-      const allOptions = { ...options, logger: this.#logger, shortPath: path, prettierConfig: this.#prettierConfig };
+      const allOptions = { ...options, logger: this.#logger, rootDir: this.#root, prettierConfig: this.#prettierConfig };
       this.#files[relative("/", path)] = await DataFile.load(fullPath, allOptions);
     }
 
@@ -51,28 +60,6 @@ export default class Manager {
   }
 
   public async saveAll(): Promise<void> {
-    await Promise.all(Object.values(this.#files).map((file) => file.save()));
+    await Promise.all(Object.values(this.#files).map((file) => file.save({ jsLogLevel: LogLevel.Warn, throwOnJs: false })));
   }
-} // eslint-disable-line @typescript-eslint/no-var-requires
-
-// const winstonLogger = createLogger({
-//   level: "debug",
-//   format: format.combine(format.colorize(), format.splat(), format.simple()),
-//   transports: [new transports.Console()],
-// });
-
-// const m = new Manager({ logger });
-
-// m.get(join("sil.json"), {})
-//   .then(async (d) => {
-//     d.newSet("a.c", "jj", () => false);
-//     // d.set("a.b", "jj", { predicate: () => false });
-//     // d.delete("a.b.c");
-//     d.merge("a.k", { y: 6 }, () => true).orderKeys();
-//     // await d.reload();
-//     d.debug();
-//   })
-//   .then(() => {
-//     m.saveAll();
-//   })
-//   .catch((e) => console.log(e));
+}

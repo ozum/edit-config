@@ -2,45 +2,85 @@
 
 # Synopsis
 
-```ts
-import { DataFile, Manager, get, has, isEqual } from "edit-config";
 
-// Optional logger. Default logger is console.
-const winstonLogger = createLogger({
+**Load, Edit & Save Single Config**
+```ts
+import { DataFile, Manager } from "edit-config";
+const packageJson = await DataFile.load("package.json");
+
+packageJson
+  .set("typings", "dist/index.d.ts",")
+  .set("scripts.build", "tsc")
+  .set("scripts.test", (value) => `${value} --coverage`)
+  .merge("husky.hooks", { pre-commit: "eslint" })
+  .merge("devDependencies", (value, key, data, path, dataFile) => ({ "@types/lodash": dataFile.get("dependencies.lodash") }) )
+  .sortKeys("scripts", { start: ["build", "test", "lint"] });
+
+await packageJson.save();
+```
+
+**Cosmiconfig: Load, Edit & Save**
+```ts
+// Loads from `package.json` or configuration file using cosmiconfig. Set true to use default cosmiconfig configuration.
+const husky = await DataFile.load("husky", { cosmiconfig: true });
+const eslint = await DataFile.load("eslint", { cosmiconfig: { options: cosmiconfigOptions, searchFrom: __dirname } });
+
+husky.set("hooks.pre-commit", "lint-staged");
+
+// Check if cosmiconfig data can be saved, because saving "js" files are not supported.
+if (husky.canSaved) await husky.save();
+```
+
+**Load, Edit & Save Multiple Config**
+```ts
+// Create manager and load files.
+const manager = new Manager({ root: ".", logger: winstonLogger });
+const [packageJson, tsconfig] = await manager.loadAll(["package.json", "tsconfig.json"]);
+await manager.saveAll();
+```
+
+**Example Logger**
+```ts
+import { createLogger, format, transports } from "winston";
+const logger = createLogger({
   level: "debug",
   format: format.combine(format.colorize(), format.splat(), format.simple()),
   transports: [new transports.Console()],
 });
 
-// Create manager and load files.
-const manager = new Manager({ root: ".", logger: winstonLogger });
-const [packageJson, tsconfig] = await manager.loadAll(["package.json", "tsconfig.json"]);
-
-packageJson.set("scripts.build", "tsc");
-packageJson.set("scripts.build", "tsc", (value) => value === undefined);
-packageJson.merge("scripts", { build: "tsc", test: "jest" }, (value, key, data, path, rootData) => rootData.get("scripts") === undefined);
-
-tsconfig.set("compilerOptions.target", "esnext");
-
-await manager.saveAll();
+const packageJson = await DataFile.load("package.json", { logger });
 ```
 
-It is possible to use `DataFile` directly without manager.
+**Disable Logger**
+```ts
+import { DataFile, noLogger } from "edit-config";
+const packageJson = await DataFile.load("package.json", { logger: noLogger });
+```
 
+**Conditional Update**
 ```ts
 const packageJson = await DataFile.load("package.json");
+packageJson
+  .set("keywords", ["my", "keywords"], { if: (value) => value === undefined })
+  .merge("scripts", { build: "tsc", test: "jest" }, { if: (value, key, data, path, rootData) => rootData.has("typings") });
 ```
-
 
 # Details
 
-`Manager` and `DataFile` classes proivdes utility methods for loading, manipulating and saving `JSON` and `YAML` configuration files.
+`DataFile` class reads `JSON`, `YAML` and `JS` configuration files and writes `JSON` and `YAML` files. `Manager` class is used to manage multiple `DataFile` classes.
+
+**Tips**
+
+* Don't forget to add `await` when chaining `async` methods: `await (await packageJson.reload()).save();`
 
 **Highlights:**
 
+* Provides `has`, `get`, `set`, `merge` methods based on [`lodash`](https://lodash.com/) functions. `delete` is based on `lodash.unset`.
+* In addition to lodash functionality, manipulation methods accept value function and condition callback function for conditional manipulation.
 * `load()` and `loadAll()` do not throw even files do not exist. Instead return default data (if provided), or empty object.
-* Data manipulation operations do not write to disk until `save()` or `saveAll()` called.
+* Data manipulation operations do not write to disk until `save()` or `saveAll()` called if `autoSave` is `false`. (Default behaviour)
 * `Manager.load()` and `Manager.loadAll()` methods cache loaded files and return cached results in consequencing calls. Use `DataFile.reload()` to reload from disk.
+* Supports [`winston`](https://github.com/winstonjs/winston) logger.
 <!-- usage -->
 
 <!-- commands -->
