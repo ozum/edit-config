@@ -1,6 +1,6 @@
 {
   "name": "edit-config",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Read, edit, write configuration files.",
   "keywords": [
     "cosmiconfig",
