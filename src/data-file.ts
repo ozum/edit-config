@@ -23,6 +23,7 @@ import {
   evaluate,
   isManipulationOptions,
   getArrayPath,
+  getFormatFromFileName,
 } from "./helper";
 
 /**
@@ -280,8 +281,46 @@ export default class DataFile {
   //
 
   /**
+   * Creates [[DataFile]] instance from given data to be saved for given file path.
+   *
+   * @param path is path of the file.
+   * @param data is the data to create [[DataFile]] from.
+   * @returns [[DataFile]] instance.
+   */
+  public static fromData(
+    path: string,
+    data: object,
+    {
+      /** Format to be used if file format cannot be determined from file name. */
+      defaultFormat = FileFormat.Json,
+      /** Winston compatible Logger to be used when logging. */
+      logger = console,
+      /** Prettier configuration to be used. If not provided determined automatically. */
+      prettierConfig,
+      /** Root directory for file. If provided, relative path is based on this root directory. */
+      rootDir,
+      /** If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded. */
+      rootDataPath,
+    }: {
+      defaultFormat?: FileFormat;
+      logger?: Logger;
+      prettierConfig?: PrettierConfig;
+      rootDir?: string;
+      rootDataPath?: DataPath;
+    } = {} as any
+  ): DataFile {
+    const fullPath = isAbsolute(path) || !rootDir ? path : join(rootDir, path);
+    const formatFromFileName = getFormatFromFileName(fullPath);
+    if (formatFromFileName === FileFormat.Js) throw new Error(`Cannot create DataFile from data for 'js' file: ${fullPath}`);
+    const format = formatFromFileName === FileFormat.Unknown ? defaultFormat : formatFromFileName;
+    return new DataFile(fullPath, data, format, logger, { defaultData: data, prettierConfig, rootDir, rootDataPath });
+  }
+
+  /**
    * Reads data from given file. If file is not present returns default data to be saved with {{save}} method.
-   * @param path is ısuhsıu
+   *
+   * @param path is path of the file.
+   * @returns [[DataFile]] instance.
    */
   public static async load(
     path: string,
@@ -298,7 +337,7 @@ export default class DataFile {
       rootDir,
       /** If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded. */
       rootDataPath,
-      /** Whether to use {@link cosmiconfig https://www.npmjs.com/package/cosmiconfig} to load configuration. Set `true` for default cosmiconfig options or provide cosmiconfig options and `searchFrom` parameter. */
+      /** Whether to use {@link cosmiconfig https://www.npmjs.com/package/cosmiconfig} to load configuration. Set `true` for default cosmiconfig options or provide an object with `options` for cosmiconfig options and `searchFrom` to provide `cosmiconfig.search()` parameter. */
       cosmiconfig = false,
     }: {
       defaultFormat?: FileFormat;

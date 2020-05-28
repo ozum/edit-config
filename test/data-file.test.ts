@@ -59,6 +59,17 @@ describe("DataFile", () => {
     await expect(eslintConfig.save()).rejects.toThrow("Cannot save");
   });
 
+  describe("fromData", () => {
+    it("should create DataFile from data.", () => {
+      const dataFile = DataFile.fromData("some.json", { a: 1 });
+      expect(dataFile.data).toEqual({ a: 1 });
+    });
+
+    it("should not create DataFile for JS file type.", () => {
+      expect(() => DataFile.fromData("some.js", {})).toThrow("Cannot create DataFile");
+    });
+  });
+
   describe("set", () => {
     it("should set value.", () => {
       packageJson.set("scripts.a", 1);

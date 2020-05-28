@@ -148,7 +148,7 @@ async function readFileTolerated(path: string): Promise<string | undefined> {
  * @param path is the path of the file
  * @returns file format.
  */
-function getFormatFromFileName(path: string): FileFormat {
+export function getFormatFromFileName(path: string): FileFormat {
   const fileExtension = extname(path).substring(1).toLowerCase();
   const formatFromFileName = supportedFileExtensions[fileExtension as keyof typeof supportedFileExtensions];
   if (formatFromFileName === undefined) throw new Error(`Unsupported file type: ${fileExtension}`);

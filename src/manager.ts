@@ -30,11 +30,16 @@ export default class Manager {
    * Reads data from given file and caches it. If file is not present returns default data to be saved with [[DataFile.save]] or [[save]} methods.
    * If same data file requested multiple times returns cached data file. Absolute path of the file is used as cache key.
    *
-   * @param path is the path of the file. Coul be an absolute path or relative to root path option provided to [[Manager]]
+   * @param path is the path of the file. Could be an absolute path or relative to root path option provided to [[Manager]]
    * @param options are options
    * @param options.defaultFormat is the default format to be used if file format cannot be determined from file name and content.
    * @param options.defaultData is the default data to be used if file does not exist.
+   * @param options.rootDataPath If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded.
+   * @param options.cosmiconfig is whether to use {@link cosmiconfig https://www.npmjs.com/package/cosmiconfig} to load configuration. Set `true` for default cosmiconfig options or provide an object with `options` for cosmiconfig options and `searchFrom` to provide `cosmiconfig.search()` parameter.
    * @returns [[DataFile]] instance.
+   * @example
+   * manager.load("package.json");
+   * manager.load("eslint", { defaultFormat: "json", cosmiconfig: { options: { packageProp: "eslint" }, searchForm: "some/path" } })
    */
   public async load(
     path: string,
@@ -51,6 +56,26 @@ export default class Manager {
       const allOptions = { ...options, logger: this.#logger, rootDir: this.#root, prettierConfig: this.#prettierConfig };
       this.#files[relative("/", path)] = await DataFile.load(fullPath, allOptions);
     }
+
+    return this.#files[relative("/", path)];
+  }
+
+  /**
+   * Creates [[DataFile]] instance from given data and caches it.
+   *
+   * @param path is the path of the file. Could be an absolute path or relative to root path option provided to [[Manager]]
+   * @param data is the data to create [[DataFile]] from.
+   * @param options are options
+   * @param options.defaultFormat is the default format to be used if file format cannot be determined from file name.
+   * @param options.rootDataPath If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded.
+   * @returns [[DataFile]] instance.
+   */
+  public async fromData(path: string, data: object, options: { defaultFormat?: FileFormat; rootDataPath?: DataPath }): Promise<DataFile> {
+    const fullPath = isAbsolute(path) ? path : join(this.#root, path);
+    if (this.#prettierConfig === undefined) this.#prettierConfig = (await getPrettierConfig(fullPath)) || null;
+
+    const allOptions = { ...options, logger: this.#logger, rootDir: this.#root, prettierConfig: this.#prettierConfig };
+    this.#files[relative("/", path)] = DataFile.fromData(fullPath, data, allOptions);
 
     return this.#files[relative("/", path)];
   }
