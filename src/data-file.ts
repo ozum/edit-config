@@ -1,8 +1,8 @@
 /* eslint-disable no-param-reassign */
+import { isAbsolute, relative, normalize, join } from "path";
 import { Options as CosmiconfigOptions } from "cosmiconfig";
 import commentJson from "comment-json";
 import yaml from "js-yaml";
-import { relative, normalize } from "path";
 import { outputFile } from "fs-extra";
 import get from "lodash.get";
 import set from "lodash.set";
@@ -294,7 +294,7 @@ export default class DataFile {
       prettierConfig,
       /** Default data to be used if file does not exist. */
       defaultData,
-      /** Root directory for files. Used in logs for information purposes only. */
+      /** Root directory for file. If provided, relative path is based on this root directory. */
       rootDir,
       /** If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded. */
       rootDataPath,
@@ -310,6 +310,8 @@ export default class DataFile {
       cosmiconfig?: boolean | { options?: CosmiconfigOptions; searchFrom?: string };
     } = {} as any
   ): Promise<DataFile> {
+    const fullPath = isAbsolute(path) || cosmiconfig || !rootDir ? path : join(rootDir, path);
+
     if (cosmiconfig) {
       const { options, searchFrom } = typeof cosmiconfig === "object" ? cosmiconfig : ({} as any);
       const result = await getCosmiconfigResult(path, defaultFormat, defaultData || {}, options, searchFrom, rootDataPath);
@@ -321,8 +323,8 @@ export default class DataFile {
       });
     }
 
-    const { data, format } = await readData(path, defaultFormat, defaultData || {}, rootDataPath);
-    return new DataFile(path, data, format, logger, { defaultData, prettierConfig, rootDir, rootDataPath });
+    const { data, format } = await readData(fullPath, defaultFormat, defaultData || {}, rootDataPath);
+    return new DataFile(fullPath, data, format, logger, { defaultData, prettierConfig, rootDir, rootDataPath });
   }
 
   /**
