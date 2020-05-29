@@ -18,6 +18,9 @@ export const enum LogLevel {
 /** Data file format. */
 export type FileFormat = "" | "json" | "yaml" | "js";
 
+/** Writeable Data file format. */
+export type WritableFileFormat = "json" | "yaml";
+
 /** @ignore */
 export type PrettierConfig = Record<string, any> | null | undefined;
 

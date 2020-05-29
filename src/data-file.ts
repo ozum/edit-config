@@ -9,7 +9,17 @@ import set from "lodash.set";
 import has from "lodash.has";
 import merge from "lodash.merge";
 import unset from "lodash.unset";
-import { Key, Logger, LogLevel, FileFormat, PrettierConfig, DataPath, PredicateFunction, StringDataPath } from "./types";
+import {
+  Key,
+  Logger,
+  LogLevel,
+  FileFormat,
+  PrettierConfig,
+  DataPath,
+  PredicateFunction,
+  StringDataPath,
+  WritableFileFormat,
+} from "./types";
 
 import {
   sortKeys,
@@ -308,7 +318,7 @@ export default class DataFile {
       /** Whether save() operation is allowed. */
       readonly,
     }: {
-      defaultFormat?: FileFormat;
+      defaultFormat?: WritableFileFormat;
       logger?: Logger;
       prettierConfig?: PrettierConfig;
       rootDir?: string;
@@ -349,7 +359,7 @@ export default class DataFile {
       /** Whether save() operation is allowed. */
       readonly,
     }: {
-      defaultFormat?: FileFormat;
+      defaultFormat?: WritableFileFormat;
       logger?: Logger;
       prettierConfig?: PrettierConfig;
       defaultData?: object;

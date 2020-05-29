@@ -1,6 +1,6 @@
 import { join, isAbsolute, relative } from "path";
 import { Options as CosmiconfigOptions } from "cosmiconfig";
-import { Logger, PrettierConfig, FileFormat, DataPath } from "./types";
+import { Logger, PrettierConfig, FileFormat, DataPath, WritableFileFormat } from "./types";
 import DataFile from "./data-file";
 import { getPrettierConfig } from "./helper";
 
@@ -45,7 +45,7 @@ export default class Manager {
   public async load(
     path: string,
     options: {
-      defaultFormat?: FileFormat;
+      defaultFormat?: WritableFileFormat;
       defaultData?: any;
       rootDataPath?: DataPath;
       cosmiconfig?: boolean | { options?: CosmiconfigOptions; searchFrom?: string };
@@ -76,7 +76,7 @@ export default class Manager {
   public async fromData(
     path: string,
     data: object,
-    options: { defaultFormat?: FileFormat; rootDataPath?: DataPath; readOnly: boolean }
+    options: { defaultFormat?: WritableFileFormat; rootDataPath?: DataPath; readOnly: boolean }
   ): Promise<DataFile> {
     const fullPath = isAbsolute(path) ? path : join(this.#root, path);
     if (this.#prettierConfig === undefined) this.#prettierConfig = (await getPrettierConfig(fullPath)) || null;
@@ -98,7 +98,7 @@ export default class Manager {
    */
   public async loadAll(
     paths: string[],
-    options: { defaultFormat?: FileFormat; defaultData?: any; readOnly?: boolean } = {}
+    options: { defaultFormat?: WritableFileFormat; defaultData?: any; readOnly?: boolean } = {}
   ): Promise<DataFile[]> {
     return Promise.all(paths.map((path) => this.load(path, options)));
   }
