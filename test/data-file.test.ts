@@ -51,8 +51,8 @@ describe("DataFile", () => {
     expect(packageJson.get("scripts.test")).toBe("jest");
   });
 
-  it("should report JS file cannot be saved.", async () => {
-    expect(eslintConfig.canSave).toBe(false);
+  it("should report JS file as readonly.", async () => {
+    expect(eslintConfig.readOnly).toBe(true);
   });
 
   it("shoudl throw if JS file tried to be saved.", async () => {

@@ -41,6 +41,7 @@ export default class DataFile {
   readonly #modifiedKeys: { set: Set<StringDataPath>; deleted: Set<StringDataPath> } = { set: new Set(), deleted: new Set() };
 
   readonly #rootDataPath?: string[];
+  readonly #readOnly: boolean;
 
   #prettierConfig?: PrettierConfig;
 
@@ -55,6 +56,7 @@ export default class DataFile {
       shortPath?: string;
       rootDataPath?: DataPath;
       rootDir?: string;
+      readonly?: boolean;
     }
   ) {
     this.#path = path;
@@ -65,6 +67,7 @@ export default class DataFile {
     this.#rootDir = options.rootDir;
     this.#defaultData = options.defaultData;
     this.#rootDataPath = options.rootDataPath ? (getArrayPath(options.rootDataPath) as string[]) : undefined;
+    this.#readOnly = options.readonly === true;
   }
 
   /** File path relative to root. */
@@ -73,8 +76,8 @@ export default class DataFile {
   }
 
   /** Whether file can be saved using this library. */
-  public get canSave(): boolean {
-    return this.#format !== "js";
+  public get readOnly(): boolean {
+    return this.#format === "js" || this.#readOnly;
   }
 
   /**
@@ -240,10 +243,11 @@ export default class DataFile {
   /**
    * Saves file. If this is a partial data using `rootDataPath` option.
    */
-  public async save({ jsLogLevel = LogLevel.Error, throwOnJs = true } = {}): Promise<void> {
-    if (this.#format === "js") {
-      this.#logger.log(jsLogLevel, `File not saved: '${em(this.shortPath)}'. Saving 'js' files are not supported.`);
-      if (throwOnJs) throw new Error(`Cannot save 'js' file: ${this.#path}`);
+  public async save({ throwOnReadOnly = true } = {}): Promise<void> {
+    if (this.readOnly) {
+      const logLevel = throwOnReadOnly ? LogLevel.Error : LogLevel.Warn;
+      this.#logger.log(logLevel, `File not saved: '${em(this.shortPath)}' is marked as readonly or is a 'js' file.`);
+      if (throwOnReadOnly) throw new Error(`Cannot save: ${this.#path} is marked as readonly or is a 'js' file.`);
       return;
     }
 
@@ -301,19 +305,22 @@ export default class DataFile {
       rootDir,
       /** If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded. */
       rootDataPath,
+      /** Whether save() operation is allowed. */
+      readonly,
     }: {
       defaultFormat?: FileFormat;
       logger?: Logger;
       prettierConfig?: PrettierConfig;
       rootDir?: string;
       rootDataPath?: DataPath;
-    } = {} as any
+      readonly?: boolean;
+    } = {}
   ): DataFile {
     const fullPath = isAbsolute(path) || !rootDir ? path : join(rootDir, path);
     const formatFromFileName = getFormatFromFileName(fullPath);
     if (formatFromFileName === "js") throw new Error(`Cannot create DataFile from data for 'js' file: ${fullPath}`);
     const format = formatFromFileName === "" ? defaultFormat : formatFromFileName;
-    return new DataFile(fullPath, data, format, logger, { defaultData: data, prettierConfig, rootDir, rootDataPath });
+    return new DataFile(fullPath, data, format, logger, { defaultData: data, prettierConfig, rootDir, rootDataPath, readonly });
   }
 
   /**
@@ -339,6 +346,8 @@ export default class DataFile {
       rootDataPath,
       /** Whether to use {@link cosmiconfig https://www.npmjs.com/package/cosmiconfig} to load configuration. Set `true` for default cosmiconfig options or provide an object with `options` for cosmiconfig options and `searchFrom` to provide `cosmiconfig.search()` parameter. */
       cosmiconfig = false,
+      /** Whether save() operation is allowed. */
+      readonly,
     }: {
       defaultFormat?: FileFormat;
       logger?: Logger;
@@ -347,7 +356,8 @@ export default class DataFile {
       rootDir?: string;
       rootDataPath?: DataPath;
       cosmiconfig?: boolean | { options?: CosmiconfigOptions; searchFrom?: string };
-    } = {} as any
+      readonly?: boolean;
+    } = {}
   ): Promise<DataFile> {
     const fullPath = isAbsolute(path) || cosmiconfig || !rootDir ? path : join(rootDir, path);
 
@@ -359,11 +369,12 @@ export default class DataFile {
         prettierConfig,
         rootDir,
         rootDataPath: result.rootDataPath,
+        readonly,
       });
     }
 
     const { data, format } = await readData(fullPath, defaultFormat, defaultData || {}, rootDataPath);
-    return new DataFile(fullPath, data, format, logger, { defaultData, prettierConfig, rootDir, rootDataPath });
+    return new DataFile(fullPath, data, format, logger, { defaultData, prettierConfig, rootDir, rootDataPath, readonly });
   }
 
   /**

@@ -1,6 +1,6 @@
 import { join, isAbsolute, relative } from "path";
 import { Options as CosmiconfigOptions } from "cosmiconfig";
-import { Logger, PrettierConfig, FileFormat, DataPath, LogLevel } from "./types";
+import { Logger, PrettierConfig, FileFormat, DataPath } from "./types";
 import DataFile from "./data-file";
 import { getPrettierConfig } from "./helper";
 
@@ -27,15 +27,16 @@ export default class Manager {
   }
 
   /**
-   * Reads data from given file and caches it. If file is not present returns default data to be saved with [[DataFile.save]] or [[save]} methods.
+   * Reads data from given file and caches it. If file is not present, returns default data to be saved with [[DataFile.save]] or [[save]} methods.
    * If same data file requested multiple times returns cached data file. Absolute path of the file is used as cache key.
    *
-   * @param path is the path of the file. Could be an absolute path or relative to root path option provided to [[Manager]]
+   * @param path is the path of the file. Could be an absolute path or relative to root path option provided to [[Manager]].
    * @param options are options
    * @param options.defaultFormat is the default format to be used if file format cannot be determined from file name and content.
    * @param options.defaultData is the default data to be used if file does not exist.
    * @param options.rootDataPath If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded.
    * @param options.cosmiconfig is whether to use {@link cosmiconfig https://www.npmjs.com/package/cosmiconfig} to load configuration. Set `true` for default cosmiconfig options or provide an object with `options` for cosmiconfig options and `searchFrom` to provide `cosmiconfig.search()` parameter.
+   * @param options.readOnly is whether file can be saved using this library.
    * @returns [[DataFile]] instance.
    * @example
    * manager.load("package.json");
@@ -48,6 +49,7 @@ export default class Manager {
       defaultData?: any;
       rootDataPath?: DataPath;
       cosmiconfig?: boolean | { options?: CosmiconfigOptions; searchFrom?: string };
+      readOnly?: boolean;
     } = {}
   ): Promise<DataFile> {
     const fullPath = isAbsolute(path) || options.cosmiconfig ? path : join(this.#root, path);
@@ -61,16 +63,21 @@ export default class Manager {
   }
 
   /**
-   * Creates [[DataFile]] instance from given data and caches it.
+   * Creates [[DataFile]] instance from given data and returns it. Also caches the data.
    *
    * @param path is the path of the file. Could be an absolute path or relative to root path option provided to [[Manager]]
    * @param data is the data to create [[DataFile]] from.
    * @param options are options
    * @param options.defaultFormat is the default format to be used if file format cannot be determined from file name.
    * @param options.rootDataPath If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded.
+   * @param options.readOnly is whether file can be saved using this library.
    * @returns [[DataFile]] instance.
    */
-  public async fromData(path: string, data: object, options: { defaultFormat?: FileFormat; rootDataPath?: DataPath }): Promise<DataFile> {
+  public async fromData(
+    path: string,
+    data: object,
+    options: { defaultFormat?: FileFormat; rootDataPath?: DataPath; readOnly: boolean }
+  ): Promise<DataFile> {
     const fullPath = isAbsolute(path) ? path : join(this.#root, path);
     if (this.#prettierConfig === undefined) this.#prettierConfig = (await getPrettierConfig(fullPath)) || null;
 
@@ -80,11 +87,23 @@ export default class Manager {
     return this.#files[relative("/", path)];
   }
 
-  public async loadAll(paths: string[], options: { defaultFormat?: FileFormat; defaultData?: any } = {}): Promise<DataFile[]> {
+  /**
+   * Reads data from all given files and caches them. If same data file requested multiple times returns cached data file. Absolute path of the file is used as cache key.
+   *
+   * @param paths are arry of paths of the files. Could be an absolute path or relative to root path option provided to [[Manager]].
+   * @param options are options.
+   * @param options.defaultFormat is the default format to be used if file format cannot be determined from file name and content.
+   * @param options.defaultData is the default data to be used if file does not exist.
+   * @param options.readOnly is whether file can be saved using this library.
+   */
+  public async loadAll(
+    paths: string[],
+    options: { defaultFormat?: FileFormat; defaultData?: any; readOnly?: boolean } = {}
+  ): Promise<DataFile[]> {
     return Promise.all(paths.map((path) => this.load(path, options)));
   }
 
   public async saveAll(): Promise<void> {
-    await Promise.all(Object.values(this.#files).map((file) => file.save({ jsLogLevel: LogLevel.Warn, throwOnJs: false })));
+    await Promise.all(Object.values(this.#files).map((file) => file.save({ throwOnReadOnly: false })));
   }
 }

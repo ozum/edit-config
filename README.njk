@@ -28,7 +28,7 @@ const eslint = await DataFile.load("eslint", { cosmiconfig: { options: cosmiconf
 husky.set("hooks.pre-commit", "lint-staged");
 
 // Check if cosmiconfig data can be saved, because saving "js" files are not supported.
-if (husky.canSaved) await husky.save();
+if (!husky.readOnly) await husky.save();
 ```
 
 **Load, Edit & Save Multiple Config**
