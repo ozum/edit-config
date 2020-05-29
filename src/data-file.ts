@@ -74,7 +74,7 @@ export default class DataFile {
 
   /** Whether file can be saved using this library. */
   public get canSave(): boolean {
-    return this.#format !== FileFormat.Js;
+    return this.#format !== "js";
   }
 
   /**
@@ -241,7 +241,7 @@ export default class DataFile {
    * Saves file. If this is a partial data using `rootDataPath` option.
    */
   public async save({ jsLogLevel = LogLevel.Error, throwOnJs = true } = {}): Promise<void> {
-    if (this.#format === FileFormat.Js) {
+    if (this.#format === "js") {
       this.#logger.log(jsLogLevel, `File not saved: '${em(this.shortPath)}'. Saving 'js' files are not supported.`);
       if (throwOnJs) throw new Error(`Cannot save 'js' file: ${this.#path}`);
       return;
@@ -292,7 +292,7 @@ export default class DataFile {
     data: object,
     {
       /** Format to be used if file format cannot be determined from file name. */
-      defaultFormat = FileFormat.Json,
+      defaultFormat = "json",
       /** Winston compatible Logger to be used when logging. */
       logger = console,
       /** Prettier configuration to be used. If not provided determined automatically. */
@@ -311,8 +311,8 @@ export default class DataFile {
   ): DataFile {
     const fullPath = isAbsolute(path) || !rootDir ? path : join(rootDir, path);
     const formatFromFileName = getFormatFromFileName(fullPath);
-    if (formatFromFileName === FileFormat.Js) throw new Error(`Cannot create DataFile from data for 'js' file: ${fullPath}`);
-    const format = formatFromFileName === FileFormat.Unknown ? defaultFormat : formatFromFileName;
+    if (formatFromFileName === "js") throw new Error(`Cannot create DataFile from data for 'js' file: ${fullPath}`);
+    const format = formatFromFileName === "" ? defaultFormat : formatFromFileName;
     return new DataFile(fullPath, data, format, logger, { defaultData: data, prettierConfig, rootDir, rootDataPath });
   }
 
@@ -326,7 +326,7 @@ export default class DataFile {
     path: string,
     {
       /** Default format to be used if file format cannot be determined from file name and content. */
-      defaultFormat = FileFormat.Json,
+      defaultFormat = "json",
       /** Winston compatible Logger to be used when logging. */
       logger = console,
       /** Prettier configuration to be used. If not provided determined automatically. */

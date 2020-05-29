@@ -5,10 +5,7 @@ export interface Logger {
   log: (...message: Array<string>) => void;
 }
 
-/**
- * Levels to be used when logging.
- * @ignore
- */
+/** @ignore */
 export const enum LogLevel {
   Error = "error",
   Warn = "warn",
@@ -18,13 +15,8 @@ export const enum LogLevel {
   Silly = "silly",
 }
 
-/** Data file formats. */
-export const enum FileFormat {
-  Json = "json",
-  Yaml = "yaml",
-  Js = "js",
-  Unknown = "",
-}
+/** Data file format. */
+export type FileFormat = "" | "json" | "yaml" | "js";
 
 /** @ignore */
 export type PrettierConfig = Record<string, any> | null | undefined;

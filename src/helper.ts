@@ -20,12 +20,12 @@ try {
 export { prettier };
 
 /** @ignore */
-export const supportedFileExtensions = {
-  json: FileFormat.Json,
-  yaml: FileFormat.Yaml,
-  yml: FileFormat.Yaml,
-  js: FileFormat.Js,
-  "": FileFormat.Unknown,
+export const supportedFileExtensions: Record<string, FileFormat> = {
+  json: "json",
+  yaml: "yaml",
+  yml: "yaml",
+  js: "js",
+  "": "",
 };
 
 /**
@@ -107,14 +107,14 @@ function parseString(content: string, rootDataPath?: DataPath): { format: FileFo
 
   try {
     const data = commentJson.parse(content);
-    return { format: FileFormat.Json, data: rootDataPath ? get(data, rootDataPath as any) : data };
+    return { format: "json", data: rootDataPath ? get(data, rootDataPath as any) : data };
   } catch (error) {
     errors.push(error);
   }
 
   try {
     const data = yaml.safeLoad(content);
-    return { format: FileFormat.Yaml, data: rootDataPath ? get(data, rootDataPath as any) : data };
+    return { format: "yaml", data: rootDataPath ? get(data, rootDataPath as any) : data };
   } catch (error) {
     errors.push(error);
   }
@@ -173,7 +173,7 @@ export async function readData(
 ): Promise<{ format: FileFormat; data: object }> {
   const formatFromFileName = getFormatFromFileName(path);
 
-  if (formatFromFileName === FileFormat.Js) return { data: await import(path), format: FileFormat.Js };
+  if (formatFromFileName === "js") return { data: await import(path), format: "js" };
   const content = await readFileTolerated(path);
 
   return content === undefined ? { data: defaultData, format: formatFromFileName || defaultFormat } : parseString(content, rootDataPath);
@@ -237,7 +237,7 @@ export async function getCosmiconfigResult(
     const packageDataPath = basename(result.filepath) === "package.json" ? options?.packageProp || module : undefined;
     const fullDataPath = joinPaths(packageDataPath, rootDataPath);
     let format = getFormatFromFileName(result.filepath);
-    if (format === FileFormat.Unknown) format = (await readData(result.filepath, defaultFormat, defaultData)).format;
+    if (format === "") format = (await readData(result.filepath, defaultFormat, defaultData)).format;
     const data = (rootDataPath ? get(result.config, rootDataPath as any) : result.config) || defaultData;
     return { format, data, path: result.filepath, rootDataPath: fullDataPath };
   }
