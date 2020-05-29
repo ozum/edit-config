@@ -5,3 +5,5 @@ export { noLogger } from "./helper";
 export { default as get } from "lodash.get";
 export { default as has } from "lodash.has";
 export { default as isEqual } from "lodash.isequal";
+
+export { FileFormat, PredicateFunction, ValueFunction } from "./types";
