@@ -1,6 +1,6 @@
 import { join, isAbsolute, relative } from "path";
 import { Options as CosmiconfigOptions } from "cosmiconfig";
-import { Logger, PrettierConfig, FileFormat, DataPath, WritableFileFormat } from "./types";
+import { Logger, PrettierConfig, DataPath, WritableFileFormat } from "./types";
 import DataFile from "./data-file";
 import { getPrettierConfig } from "./helper";
 
