@@ -349,6 +349,7 @@ export default class DataFile {
    *
    * @param path is path of the file.
    * @returns [[DataFile]] instance.
+   * @throws if file exists but cannot be parsed.
    */
   public static async load(
     path: string,

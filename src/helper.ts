@@ -164,6 +164,7 @@ export function getFormatFromFileName(path: string): FileFormat {
  * @param defaultData Default data to be used if file does not exist.
  * @param rootDataPath is the path to return data from.
  * @returns data and format.
+ * @throws if file cannot be parsed.
  */
 export async function readData(
   path: string,

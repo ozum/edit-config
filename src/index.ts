@@ -6,4 +6,6 @@ export { default as get } from "lodash.get";
 export { default as has } from "lodash.has";
 export { default as isEqual } from "lodash.isequal";
 
-export { FileFormat, WritableFileFormat, PredicateFunction, ValueFunction } from "./types";
+export { FileFormat, WritableFileFormat, PredicateFunction, ValueFunction, DataPath } from "./types";
+
+export { Options as CosmiconfigOptions } from "cosmiconfig";
