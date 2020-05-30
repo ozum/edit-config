@@ -250,10 +250,11 @@ export default class DataFile {
     return this;
   }
 
-  /**
-   * Saves file. If this is a partial data using `rootDataPath` option.
-   */
-  public async save({ throwOnReadOnly = true } = {}): Promise<void> {
+  /** Saves file. If this is a partial data uses only related part by utilizing `rootDataPath` option. */
+  public async save({
+    /** Whether to throw if file is read only. */
+    throwOnReadOnly = true,
+  } = {}): Promise<void> {
     if (this.readOnly) {
       const logLevel = throwOnReadOnly ? LogLevel.Error : LogLevel.Warn;
       this.#logger.log(logLevel, `File not saved: '${em(this.shortPath)}' is marked as readonly or is a 'js' file.`);
@@ -261,18 +262,28 @@ export default class DataFile {
       return;
     }
 
-    // If this is a partial data of a file, reread and change only related part and then save.
-    const data = this.#rootDataPath
-      ? set((await readData(this.#path, this.#format, this.#defaultData || this.data)).data, this.#rootDataPath, this.data)
-      : this.data;
+    await outputFile(this.#path, await this.serialize(true));
+    this.#logger.log(LogLevel.Info, `File saved: ${em(this.shortPath)}`);
+  }
+
+  /**
+   * Returns data serialized as text.
+   *
+   * @param wholeFile is whether to serialize whole file when `rootDataPath` is set. Reads whole file including `rootDataPath` part and serializes whole file data.
+   * @returns serialized data as string.
+   */
+  public async serialize(wholeFile = false): Promise<string> {
+    // If this is a partial data of a file, reread and change related part and serialize.
+    const data =
+      this.#rootDataPath && wholeFile
+        ? set((await readData(this.#path, this.#format, this.#defaultData || this.data)).data, this.#rootDataPath, this.data)
+        : this.data;
 
     let content = this.#format === "json" ? commentJson.stringify(data, null, 2) : yaml.safeDump(data);
 
     if (this.#prettierConfig === undefined) this.#prettierConfig = (await getPrettierConfig(this.#path)) || null;
     if (this.#prettierConfig) content = prettier.format(content, { ...this.#prettierConfig, parser: this.#format });
-
-    await outputFile(this.#path, content);
-    this.#logger.log(LogLevel.Info, `File saved: ${em(this.shortPath)}`);
+    return content;
   }
 
   /**
@@ -315,7 +326,7 @@ export default class DataFile {
       rootDir,
       /** If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded. */
       rootDataPath,
-      /** Whether save() operation is allowed. */
+      /** Whether to save() operation is allowed. */
       readonly,
     }: {
       defaultFormat?: WritableFileFormat;
@@ -356,7 +367,7 @@ export default class DataFile {
       rootDataPath,
       /** Whether to use {@link cosmiconfig https://www.npmjs.com/package/cosmiconfig} to load configuration. Set `true` for default cosmiconfig options or provide an object with `options` for cosmiconfig options and `searchFrom` to provide `cosmiconfig.search()` parameter. */
       cosmiconfig = false,
-      /** Whether save() operation is allowed. */
+      /** Whether to save() operation is allowed. */
       readonly,
     }: {
       defaultFormat?: WritableFileFormat;

@@ -512,7 +512,7 @@ Name | Type | Default | Description |
 `defaultFormat` | "json" &#124; "yaml" | "json" | Format to be used if file format cannot be determined from file name. |
 `logger` | Logger | console | Winston compatible Logger to be used when logging. |
 `prettierConfig` | undefined &#124; null &#124; object | - | Prettier configuration to be used. If not provided determined automatically. |
-`readonly` | undefined &#124; false &#124; true | - | Whether save() operation is allowed. |
+`readonly` | undefined &#124; false &#124; true | - | Whether to save() operation is allowed. |
 `rootDataPath` | undefined &#124; null &#124; string &#124; number &#124; undefined &#124; null &#124; string &#124; number[] | - | If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded. |
 `rootDir` | undefined &#124; string | - | Root directory for file. If provided, relative path is based on this root directory. |
 
@@ -545,7 +545,7 @@ Name | Type | Default | Description |
 `defaultFormat` | "json" &#124; "yaml" | "json" | Default format to be used if file format cannot be determined from file name and content. |
 `logger` | Logger | console | Winston compatible Logger to be used when logging. |
 `prettierConfig` | undefined &#124; null &#124; object | - | Prettier configuration to be used. If not provided determined automatically. |
-`readonly` | undefined &#124; false &#124; true | - | Whether save() operation is allowed. |
+`readonly` | undefined &#124; false &#124; true | - | Whether to save() operation is allowed. |
 `rootDataPath` | undefined &#124; null &#124; string &#124; number &#124; undefined &#124; null &#124; string &#124; number[] | - | If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded. |
 `rootDir` | undefined &#124; string | - | Root directory for file. If provided, relative path is based on this root directory. |
 
