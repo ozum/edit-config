@@ -1,6 +1,5 @@
 /* eslint-disable no-param-reassign */
 import { isAbsolute, relative, normalize, join } from "path";
-import { Options as CosmiconfigOptions } from "cosmiconfig";
 import commentJson from "comment-json";
 import yaml from "js-yaml";
 import { outputFile } from "fs-extra";
@@ -10,6 +9,7 @@ import has from "lodash.has";
 import merge from "lodash.merge";
 import unset from "lodash.unset";
 import {
+  DataFileFromDataOptions,
   Key,
   Logger,
   LogLevel,
@@ -18,7 +18,7 @@ import {
   DataPath,
   PredicateFunction,
   StringDataPath,
-  WritableFileFormat,
+  DataFileLoadOptions,
 } from "./types";
 
 import {
@@ -55,29 +55,29 @@ export default class DataFile {
 
   #prettierConfig?: PrettierConfig;
 
-  protected constructor(
+  private constructor(
     path: string,
     data: object,
-    format: FileFormat,
-    logger: Logger,
     options: {
+      logger?: Logger;
+      format?: FileFormat;
       defaultData?: object;
       prettierConfig?: PrettierConfig;
       shortPath?: string;
       rootDataPath?: DataPath;
       rootDir?: string;
-      readonly?: boolean;
+      readOnly?: boolean;
     }
   ) {
     this.#path = path;
     this.data = data;
-    this.#format = format;
-    this.#logger = logger;
+    this.#format = options.format ?? "json";
+    this.#logger = options.logger ?? console;
     this.#prettierConfig = options.prettierConfig;
     this.#rootDir = options.rootDir;
     this.#defaultData = options.defaultData;
     this.#rootDataPath = options.rootDataPath ? (getArrayPath(options.rootDataPath) as string[]) : undefined;
-    this.#readOnly = options.readonly === true;
+    this.#readOnly = options.readOnly === true;
   }
 
   /** File path relative to root. */
@@ -203,9 +203,8 @@ export default class DataFile {
   /**
    * Returns deleted and modified keys (paths) in data file. Keys may be filtered by required condition.
    *
-   * @param include is string or array of strings, of which keys starting with is included.
-   * @param exclude is string or array of strings, of which keys starting with is excluded.
-   * @returns modified keys
+   * @param filter is a filter function to test whether to include key and type in result.
+   * @returns set and deleted keys
    *
    * @example
    * dataFile.getModifiedKeys({ include: "scripts", exclude: ["scripts.validate", "scripts.docs"] });
@@ -276,7 +275,7 @@ export default class DataFile {
     // If this is a partial data of a file, reread and change related part and serialize.
     const data =
       this.#rootDataPath && wholeFile
-        ? set((await readData(this.#path, this.#format, this.#defaultData || this.data)).data, this.#rootDataPath, this.data)
+        ? set((await readData(this.#path, this.#defaultData || this.data)).data, this.#rootDataPath, this.data)
         : this.data;
 
     let content = this.#format === "json" ? commentJson.stringify(data, null, 2) : yaml.safeDump(data);
@@ -310,100 +309,45 @@ export default class DataFile {
    *
    * @param path is path of the file.
    * @param data is the data to create [[DataFile]] from.
+   * @param options are options.
    * @returns [[DataFile]] instance.
    */
-  public static fromData(
-    path: string,
-    data: object,
-    {
-      /** Format to be used if file format cannot be determined from file name. */
-      defaultFormat = "json",
-      /** Winston compatible Logger to be used when logging. */
-      logger = console,
-      /** Prettier configuration to be used. If not provided determined automatically. */
-      prettierConfig,
-      /** Root directory for file. If provided, relative path is based on this root directory. */
-      rootDir,
-      /** If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded. */
-      rootDataPath,
-      /** Whether to save() operation is allowed. */
-      readonly,
-    }: {
-      defaultFormat?: WritableFileFormat;
-      logger?: Logger;
-      prettierConfig?: PrettierConfig;
-      rootDir?: string;
-      rootDataPath?: DataPath;
-      readonly?: boolean;
-    } = {}
-  ): DataFile {
-    const fullPath = isAbsolute(path) || !rootDir ? path : join(rootDir, path);
+  public static fromData(path: string, data: object, options: DataFileFromDataOptions = {}): DataFile {
+    const fullPath = isAbsolute(path) || !options.rootDir ? path : join(options.rootDir, path);
     const formatFromFileName = getFormatFromFileName(fullPath);
     if (formatFromFileName === "js") throw new Error(`Cannot create DataFile from data for 'js' file: ${fullPath}`);
-    const format = formatFromFileName === "" ? defaultFormat : formatFromFileName;
-    return new DataFile(fullPath, data, format, logger, { defaultData: data, prettierConfig, rootDir, rootDataPath, readonly });
+    const format = formatFromFileName === "" ? options.defaultFormat : formatFromFileName;
+    return new DataFile(fullPath, data, { defaultData: data, format, ...options });
   }
 
   /**
    * Reads data from given file. If file is not present returns default data to be saved with {{save}} method.
    *
    * @param path is path of the file.
+   * @param options are options.
    * @returns [[DataFile]] instance.
    * @throws if file exists but cannot be parsed.
    */
-  public static async load(
-    path: string,
-    {
-      /** Default format to be used if file format cannot be determined from file name and content. */
-      defaultFormat = "json",
-      /** Winston compatible Logger to be used when logging. */
-      logger = console,
-      /** Prettier configuration to be used. If not provided determined automatically. */
-      prettierConfig,
-      /** Default data to be used if file does not exist. */
-      defaultData,
-      /** Root directory for file. If provided, relative path is based on this root directory. */
-      rootDir,
-      /** If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded. */
-      rootDataPath,
-      /** Whether to use {@link cosmiconfig https://www.npmjs.com/package/cosmiconfig} to load configuration. Set `true` for default cosmiconfig options or provide an object with `options` for cosmiconfig options and `searchFrom` to provide `cosmiconfig.search()` parameter. */
-      cosmiconfig = false,
-      /** Whether to save() operation is allowed. */
-      readonly,
-    }: {
-      defaultFormat?: WritableFileFormat;
-      logger?: Logger;
-      prettierConfig?: PrettierConfig;
-      defaultData?: object;
-      rootDir?: string;
-      rootDataPath?: DataPath;
-      cosmiconfig?: boolean | { options?: CosmiconfigOptions; searchFrom?: string };
-      readonly?: boolean;
-    } = {}
-  ): Promise<DataFile> {
+  public static async load(path: string, options?: DataFileLoadOptions): Promise<DataFile> {
+    const { cosmiconfig, defaultData, rootDataPath, rootDir } = { defaultData: {}, ...options };
     const fullPath = isAbsolute(path) || cosmiconfig || !rootDir ? path : join(rootDir, path);
 
     if (cosmiconfig) {
-      const { options, searchFrom } = typeof cosmiconfig === "object" ? cosmiconfig : ({} as any);
-      const result = await getCosmiconfigResult(path, defaultFormat, defaultData || {}, options, searchFrom, rootDataPath);
-      return new DataFile(result.path, result.data, result.format, logger, {
-        defaultData,
-        prettierConfig,
-        rootDir,
-        rootDataPath: result.rootDataPath,
-        readonly,
-      });
+      const { options: cOptions, searchFrom } = typeof cosmiconfig === "object" ? cosmiconfig : ({} as any);
+      const result = await getCosmiconfigResult(path, defaultData, cOptions, searchFrom, rootDataPath);
+      const format = result.format === "" ? options?.defaultFormat : result.format;
+      return new DataFile(result.path, result.data, { ...options, ...result, format });
     }
 
-    const { data, format } = await readData(fullPath, defaultFormat, defaultData || {}, rootDataPath);
-    return new DataFile(fullPath, data, format, logger, { defaultData, prettierConfig, rootDir, rootDataPath, readonly });
+    const { data, format } = await readData(fullPath, defaultData, rootDataPath);
+    return new DataFile(fullPath, data, { format: format || options?.defaultFormat, ...options });
   }
 
   /**
    * Reload data from disk. If file is not present resets data to default data.
    */
   public async reload(): Promise<this> {
-    this.data = (await readData(this.#path, this.#format, this.#defaultData || this.data, this.#rootDataPath)).data;
+    this.data = (await readData(this.#path, this.#defaultData || this.data, this.#rootDataPath)).data;
     return this;
   }
 }

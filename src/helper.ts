@@ -166,18 +166,13 @@ export function getFormatFromFileName(path: string): FileFormat {
  * @returns data and format.
  * @throws if file cannot be parsed.
  */
-export async function readData(
-  path: string,
-  defaultFormat: FileFormat,
-  defaultData: object,
-  rootDataPath?: DataPath
-): Promise<{ format: FileFormat; data: object }> {
+export async function readData(path: string, defaultData: object, rootDataPath?: DataPath): Promise<{ format: FileFormat; data: object }> {
   const formatFromFileName = getFormatFromFileName(path);
 
   if (formatFromFileName === "js") return { data: await import(path), format: "js" };
   const content = await readFileTolerated(path);
 
-  return content === undefined ? { data: defaultData, format: formatFromFileName || defaultFormat } : parseString(content, rootDataPath);
+  return content === undefined ? { data: defaultData, format: formatFromFileName } : parseString(content, rootDataPath);
 }
 
 /**
@@ -226,7 +221,6 @@ function joinPaths(...paths: Array<DataPath>): string {
  */
 export async function getCosmiconfigResult(
   module: string,
-  defaultFormat: FileFormat,
   defaultData: object,
   options?: CosmiconfigOptions,
   searchFrom?: string,
@@ -238,13 +232,13 @@ export async function getCosmiconfigResult(
     const packageDataPath = basename(result.filepath) === "package.json" ? options?.packageProp || module : undefined;
     const fullDataPath = joinPaths(packageDataPath, rootDataPath);
     let format = getFormatFromFileName(result.filepath);
-    if (format === "") format = (await readData(result.filepath, defaultFormat, defaultData)).format;
+    if (format === "") format = (await readData(result.filepath, defaultData)).format;
     const data = (rootDataPath ? get(result.config, rootDataPath as any) : result.config) || defaultData;
     return { format, data, path: result.filepath, rootDataPath: fullDataPath };
   }
 
   const path = searchFrom ? joinPaths(searchFrom, `.${module}rc`) : `.${module}rc`;
-  const { data, format } = await readData(path, defaultFormat, defaultData);
+  const { data, format } = await readData(path, defaultData);
   return { format, data, path, rootDataPath };
 }
 

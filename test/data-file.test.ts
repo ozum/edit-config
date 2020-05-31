@@ -5,11 +5,11 @@ import { Manager, DataFile, noLogger } from "../src";
 const root = join(__dirname, "example");
 const manager = new Manager({ root, logger: noLogger });
 
-let [packageJson, eslintConfig, huskyConfig]: DataFile[] = [];
+let [packageJson, eslintConfig, huskyConfig, someConfig]: DataFile[] = [];
 
 beforeEach(async () => {
   // Reset to initial state
-  [packageJson, eslintConfig] = await manager.loadAll(["package.json", ".eslintrc.js"]);
+  [packageJson, eslintConfig, someConfig] = await manager.loadAll(["package.json", ".eslintrc.js", "some-config"]);
   huskyConfig = await manager.load("husky", { cosmiconfig: { searchFrom: root } });
 });
 
@@ -32,6 +32,10 @@ describe("DataFile", () => {
 
   it("should load JS file.", async () => {
     expect(eslintConfig.get("name")).toBe("example-eslint");
+  });
+
+  it("should load config without extension.", async () => {
+    expect(someConfig.get("a")).toBe(1);
   });
 
   it("should load cosmiconfig data.", async () => {

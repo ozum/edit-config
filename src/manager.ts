@@ -1,6 +1,5 @@
 import { join, isAbsolute, relative } from "path";
-import { Options as CosmiconfigOptions } from "cosmiconfig";
-import { Logger, PrettierConfig, DataPath, WritableFileFormat } from "./types";
+import { Logger, PrettierConfig, WritableFileFormat, ManagerLoadOptions, ManagerFromDataOptions } from "./types";
 import DataFile from "./data-file";
 import { getPrettierConfig } from "./helper";
 
@@ -32,26 +31,12 @@ export default class Manager {
    *
    * @param path is the path of the file. Could be an absolute path or relative to root path option provided to [[Manager]].
    * @param options are options
-   * @param options.defaultFormat is the default format to be used if file format cannot be determined from file name and content.
-   * @param options.defaultData is the default data to be used if file does not exist.
-   * @param options.rootDataPath If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded.
-   * @param options.cosmiconfig is whether to use {@link cosmiconfig https://www.npmjs.com/package/cosmiconfig} to load configuration. Set `true` for default cosmiconfig options or provide an object with `options` for cosmiconfig options and `searchFrom` to provide `cosmiconfig.search()` parameter.
-   * @param options.readOnly is whether file can be saved using this library.
    * @returns [[DataFile]] instance.
    * @example
    * manager.load("package.json");
    * manager.load("eslint", { defaultFormat: "json", cosmiconfig: { options: { packageProp: "eslint" }, searchForm: "some/path" } })
    */
-  public async load(
-    path: string,
-    options: {
-      defaultFormat?: WritableFileFormat;
-      defaultData?: any;
-      rootDataPath?: DataPath;
-      cosmiconfig?: boolean | { options?: CosmiconfigOptions; searchFrom?: string };
-      readOnly?: boolean;
-    } = {}
-  ): Promise<DataFile> {
+  public async load(path: string, options: ManagerLoadOptions): Promise<DataFile> {
     const fullPath = isAbsolute(path) || options.cosmiconfig ? path : join(this.#root, path);
     if (this.#prettierConfig === undefined) this.#prettierConfig = (await getPrettierConfig(fullPath)) || null;
     if (!this.#files[path]) {
@@ -68,16 +53,9 @@ export default class Manager {
    * @param path is the path of the file. Could be an absolute path or relative to root path option provided to [[Manager]]
    * @param data is the data to create [[DataFile]] from.
    * @param options are options
-   * @param options.defaultFormat is the default format to be used if file format cannot be determined from file name.
-   * @param options.rootDataPath If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded.
-   * @param options.readOnly is whether file can be saved using this library.
    * @returns [[DataFile]] instance.
    */
-  public async fromData(
-    path: string,
-    data: object,
-    options: { defaultFormat?: WritableFileFormat; rootDataPath?: DataPath; readOnly: boolean }
-  ): Promise<DataFile> {
+  public async fromData(path: string, data: object, options: ManagerFromDataOptions): Promise<DataFile> {
     const fullPath = isAbsolute(path) ? path : join(this.#root, path);
     if (this.#prettierConfig === undefined) this.#prettierConfig = (await getPrettierConfig(fullPath)) || null;
 
@@ -92,9 +70,6 @@ export default class Manager {
    *
    * @param paths are arry of paths of the files. Could be an absolute path or relative to root path option provided to [[Manager]].
    * @param options are options.
-   * @param options.defaultFormat is the default format to be used if file format cannot be determined from file name and content.
-   * @param options.defaultData is the default data to be used if file does not exist.
-   * @param options.readOnly is whether file can be saved using this library.
    */
   public async loadAll(
     paths: string[],
