@@ -47,32 +47,6 @@ export function arrify<T>(input: T | T[]): T[] {
   return Array.isArray(input) ? input : [input];
 }
 
-// /**
-//  * Filters an array based on starting strings of its elements and returns filtered array as a new array.
-//  *
-//  * @ignore
-//  * @param array is array to be filtered.
-//  * @param include is string or array of strings, of which elements starting with is included.
-//  * @param exclude is string or array of strings, of which elements starting with is excluded.
-//  * @returns filtered array.
-//  */
-// export function filterArray(
-//   array: Key[],
-//   { include = [], exclude = [] }: { include?: string | string[]; exclude?: string | string[] }
-// ): string[] {
-//   const includeArray = arrify(include);
-//   const excludeArray = arrify(exclude);
-//   let result = array;
-
-//   if (includeArray.length > 0) {
-//     result = result.filter((key) => typeof key === "string" && includeArray.some((included) => key.startsWith(included)));
-//   }
-//   if (excludeArray.length > 0) {
-//     result = result.filter((key) => typeof key === "string" && !excludeArray.some((excluded) => key.startsWith(excluded)));
-//   }
-//   return result as string[];
-// }
-
 /**
  * Sort keys in given order. Missing keys in `keys` added to the end. If no keys are provided, sorts alphabetically.
  *
