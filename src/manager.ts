@@ -18,7 +18,7 @@ export default class Manager {
    * @param root is the root path to be used for all relative file paths.
    * @param logger is the winston compatible Logger to be used when logging.
    */
-  public constructor({ root = "", logger = noLogger } = {}) {
+  public constructor({ root = "", logger = noLogger }: { root: string; logger: Logger }) {
     this.#root = root;
     this.#logger = logger;
   }

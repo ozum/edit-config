@@ -32,7 +32,7 @@
   "scripts": {
     "file:watch": "ts-node-dev --no-notify --respawn --transpileOnly --compiler-options '{ \"module\": \"commonjs\" }'",
     "start": "tsdx watch",
-    "build": "tsc",
+    "build": "tsdx build",
     "test": "tsdx test",
     "lint": "tsdx lint",
     "prepare": "tsdx build",
