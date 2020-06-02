@@ -34,7 +34,7 @@ export default class Manager {
    * manager.load("package.json");
    * manager.load("eslint", { defaultFormat: "json", cosmiconfig: { options: { packageProp: "eslint" }, searchForm: "some/path" } })
    */
-  public async load(path: string, options: ManagerLoadOptions): Promise<DataFile> {
+  public async load(path: string, options: ManagerLoadOptions = {}): Promise<DataFile> {
     const fullPath = isAbsolute(path) || options.cosmiconfig ? path : join(this.#root, path);
     if (this.#prettierConfig === undefined) this.#prettierConfig = (await getPrettierConfig(fullPath)) || null;
     if (!this.#files[path]) {
@@ -53,7 +53,7 @@ export default class Manager {
    * @param options are options
    * @returns [[DataFile]] instance.
    */
-  public async fromData(path: string, data: object, options: ManagerFromDataOptions): Promise<DataFile> {
+  public async fromData(path: string, data: object, options: ManagerFromDataOptions = {}): Promise<DataFile> {
     const fullPath = isAbsolute(path) ? path : join(this.#root, path);
     if (this.#prettierConfig === undefined) this.#prettierConfig = (await getPrettierConfig(fullPath)) || null;
 
