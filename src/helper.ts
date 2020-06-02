@@ -7,7 +7,7 @@ import isEqual from "lodash.isequal";
 import { readFile } from "fs-extra";
 import get from "lodash.get";
 import type DataFile from "./data-file";
-import { PredicateFunction, DataPath, FileFormat, ValueFunction, Key } from "./types";
+import { PredicateFunction, DataPath, FileFormat, ValueFunction, Key, Logger } from "./types";
 
 /** @ignore */
 let prettier: any; // eslint-disable-line import/no-mutable-exports
@@ -276,7 +276,7 @@ export function isManipulationOptions(value: any): value is { if?: PredicateFunc
  * @ignore
  *
  */
-export const noLogger = { log: () => {} }; // eslint-disable-line @typescript-eslint/no-empty-function
+export const noLogger: Logger = { log: () => {} }; // eslint-disable-line @typescript-eslint/no-empty-function
 
 /** @ignore */
 export const em = chalk.yellow;
