@@ -3,7 +3,7 @@ import DataFile from "./data-file";
 
 /** @ignore */
 export interface Logger {
-  log: (...message: Array<string>) => void;
+  log: (...message: Array<string>) => void | undefined;
 }
 
 /** @ignore */

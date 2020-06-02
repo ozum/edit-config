@@ -276,7 +276,7 @@ export function isManipulationOptions(value: any): value is { if?: PredicateFunc
  * @ignore
  *
  */
-export const noLogger = { log: () => undefined };
+export const noLogger = { log: () => {} }; // eslint-disable-line @typescript-eslint/no-empty-function
 
 /** @ignore */
 export const em = chalk.yellow;

@@ -183,7 +183,7 @@ packageJson
 
 Ƭ **FileFormat**: *"" | "json" | "yaml" | "js"*
 
-*Defined in [types.ts:20](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L20)*
+*Defined in [types.ts:20](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L20)*
 
 Data file format.
 
@@ -193,7 +193,7 @@ ___
 
 Ƭ **PredicateFunction**: *function*
 
-*Defined in [types.ts:37](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L37)*
+*Defined in [types.ts:37](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L37)*
 
 #### Type declaration:
 
@@ -217,7 +217,7 @@ ___
 
 Ƭ **ValueFunction**: *function*
 
-*Defined in [types.ts:50](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L50)*
+*Defined in [types.ts:50](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L50)*
 
 #### Type declaration:
 
@@ -241,7 +241,7 @@ ___
 
 Ƭ **WritableFileFormat**: *"json" | "yaml"*
 
-*Defined in [types.ts:23](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L23)*
+*Defined in [types.ts:23](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L23)*
 
 Writeable Data file format.
 
@@ -264,7 +264,7 @@ Read, edit and write configuration files.
 
 • **data**: *object*
 
-*Defined in [data-file.ts:44](https://github.com/ozum/edit-config/blob/010fc49/src/data-file.ts#L44)*
+*Defined in [data-file.ts:44](https://github.com/ozum/edit-config/blob/8c9c7d8/src/data-file.ts#L44)*
 
 Actual data
 
@@ -274,7 +274,7 @@ Actual data
 
 • **get readOnly**(): *boolean*
 
-*Defined in [data-file.ts:89](https://github.com/ozum/edit-config/blob/010fc49/src/data-file.ts#L89)*
+*Defined in [data-file.ts:89](https://github.com/ozum/edit-config/blob/8c9c7d8/src/data-file.ts#L89)*
 
 Whether file can be saved using this library.
 
@@ -286,7 +286,7 @@ Whether file can be saved using this library.
 
 ▸ **delete**(`path`: DataPath, `options`: object): *this*
 
-*Defined in [data-file.ts:158](https://github.com/ozum/edit-config/blob/010fc49/src/data-file.ts#L158)*
+*Defined in [data-file.ts:158](https://github.com/ozum/edit-config/blob/8c9c7d8/src/data-file.ts#L158)*
 
 Deletes the property at `path` of file data.
 
@@ -319,7 +319,7 @@ ___
 
 ▸ **get**(`path`: DataPath, `defaultValue?`: any): *any*
 
-*Defined in [data-file.ts:118](https://github.com/ozum/edit-config/blob/010fc49/src/data-file.ts#L118)*
+*Defined in [data-file.ts:118](https://github.com/ozum/edit-config/blob/8c9c7d8/src/data-file.ts#L118)*
 
 Gets the value at `path` of file data. If the resolved value is undefined, the `defaultValue` is returned in its place.
 
@@ -346,7 +346,7 @@ ___
 
 ▸ **getModifiedKeys**(`__namedParameters`: object): *object*
 
-*Defined in [data-file.ts:212](https://github.com/ozum/edit-config/blob/010fc49/src/data-file.ts#L212)*
+*Defined in [data-file.ts:212](https://github.com/ozum/edit-config/blob/8c9c7d8/src/data-file.ts#L212)*
 
 Returns deleted and modified keys (paths) in data file. Keys may be filtered by required condition.
 
@@ -377,7 +377,7 @@ ___
 
 ▸ **has**(`path`: DataPath): *boolean*
 
-*Defined in [data-file.ts:103](https://github.com/ozum/edit-config/blob/010fc49/src/data-file.ts#L103)*
+*Defined in [data-file.ts:103](https://github.com/ozum/edit-config/blob/8c9c7d8/src/data-file.ts#L103)*
 
 Returns whether given `path` exists in file data.
 
@@ -403,7 +403,7 @@ ___
 
 ▸ **merge**(`path`: DataPath, ...`valuesAndOptions`: any[]): *this*
 
-*Defined in [data-file.ts:184](https://github.com/ozum/edit-config/blob/010fc49/src/data-file.ts#L184)*
+*Defined in [data-file.ts:184](https://github.com/ozum/edit-config/blob/8c9c7d8/src/data-file.ts#L184)*
 
 This method is like assign except that it recursively merges own and inherited enumerable string keyed properties of source objects
 into the destination object. Source properties that resolve to undefined are skipped if a destination value exists.
@@ -432,7 +432,7 @@ ___
 
 ▸ **reload**(): *Promise‹this›*
 
-*Defined in [data-file.ts:345](https://github.com/ozum/edit-config/blob/010fc49/src/data-file.ts#L345)*
+*Defined in [data-file.ts:345](https://github.com/ozum/edit-config/blob/8c9c7d8/src/data-file.ts#L345)*
 
 Reload data from disk. If file is not present resets data to default data.
 
@@ -444,7 +444,7 @@ ___
 
 ▸ **save**(`__namedParameters`: object): *Promise‹void›*
 
-*Defined in [data-file.ts:249](https://github.com/ozum/edit-config/blob/010fc49/src/data-file.ts#L249)*
+*Defined in [data-file.ts:249](https://github.com/ozum/edit-config/blob/8c9c7d8/src/data-file.ts#L249)*
 
 Saves file. If this is a partial data uses only related part by utilizing `rootDataPath` option.
 
@@ -464,7 +464,7 @@ ___
 
 ▸ **serialize**(`wholeFile`: boolean): *Promise‹string›*
 
-*Defined in [data-file.ts:270](https://github.com/ozum/edit-config/blob/010fc49/src/data-file.ts#L270)*
+*Defined in [data-file.ts:270](https://github.com/ozum/edit-config/blob/8c9c7d8/src/data-file.ts#L270)*
 
 Returns data serialized as text.
 
@@ -484,7 +484,7 @@ ___
 
 ▸ **set**(`path`: DataPath, `value`: any, `options`: object): *this*
 
-*Defined in [data-file.ts:136](https://github.com/ozum/edit-config/blob/010fc49/src/data-file.ts#L136)*
+*Defined in [data-file.ts:136](https://github.com/ozum/edit-config/blob/8c9c7d8/src/data-file.ts#L136)*
 
 Sets the value at `path` of file data. If a portion of path doesn't exist, it's created.
 Arrays are created for missing index properties while objects are created for all other missing properties.
@@ -522,7 +522,7 @@ ___
 
 ▸ **sortKeys**(`path`: DataPath, `options?`: undefined | object): *this*
 
-*Defined in [data-file.ts:238](https://github.com/ozum/edit-config/blob/010fc49/src/data-file.ts#L238)*
+*Defined in [data-file.ts:238](https://github.com/ozum/edit-config/blob/8c9c7d8/src/data-file.ts#L238)*
 
 When keys/values added which are previously does not exist, they are added to the end of the file during file write.
 This method allows reordering of the keys in given path. Required keys may be put at the beginning and of the order.
@@ -547,7 +547,7 @@ ___
 
 ▸ **fromData**(`path`: string, `data`: object, `options`: [DataFileFromDataOptions](#interfacesdatafilefromdataoptionsmd)): *[DataFile](#classesdatafilemd)*
 
-*Defined in [data-file.ts:311](https://github.com/ozum/edit-config/blob/010fc49/src/data-file.ts#L311)*
+*Defined in [data-file.ts:311](https://github.com/ozum/edit-config/blob/8c9c7d8/src/data-file.ts#L311)*
 
 Creates [DataFile](#classesdatafilemd) instance from given data to be saved for given file path.
 
@@ -569,7 +569,7 @@ ___
 
 ▸ **load**(`path`: string, `options?`: [DataFileLoadOptions](#interfacesdatafileloadoptionsmd)): *Promise‹[DataFile](#classesdatafilemd)›*
 
-*Defined in [data-file.ts:327](https://github.com/ozum/edit-config/blob/010fc49/src/data-file.ts#L327)*
+*Defined in [data-file.ts:327](https://github.com/ozum/edit-config/blob/8c9c7d8/src/data-file.ts#L327)*
 
 Reads data from given file. If file is not present returns default data to be saved with  method.
 
@@ -603,7 +603,7 @@ Manage multiple configuration files using [DataFile](#classesdatafilemd).
 
 \+ **new Manager**(`__namedParameters`: object): *[Manager](#classesmanagermd)*
 
-*Defined in [manager.ts:13](https://github.com/ozum/edit-config/blob/010fc49/src/manager.ts#L13)*
+*Defined in [manager.ts:13](https://github.com/ozum/edit-config/blob/8c9c7d8/src/manager.ts#L13)*
 
 Creates a manager to manage multiple data files.
 
@@ -624,7 +624,7 @@ Name | Type | Default | Description |
 
 ▸ **fromData**(`path`: string, `data`: object, `options`: [ManagerFromDataOptions](#interfacesmanagerfromdataoptionsmd)): *Promise‹[DataFile](#classesdatafilemd)›*
 
-*Defined in [manager.ts:56](https://github.com/ozum/edit-config/blob/010fc49/src/manager.ts#L56)*
+*Defined in [manager.ts:56](https://github.com/ozum/edit-config/blob/8c9c7d8/src/manager.ts#L56)*
 
 Creates [DataFile](#classesdatafilemd) instance from given data and returns it. Also caches the data.
 
@@ -646,7 +646,7 @@ ___
 
 ▸ **load**(`path`: string, `options`: [ManagerLoadOptions](#interfacesmanagerloadoptionsmd)): *Promise‹[DataFile](#classesdatafilemd)›*
 
-*Defined in [manager.ts:37](https://github.com/ozum/edit-config/blob/010fc49/src/manager.ts#L37)*
+*Defined in [manager.ts:37](https://github.com/ozum/edit-config/blob/8c9c7d8/src/manager.ts#L37)*
 
 Reads data from given file and caches it. If file is not present, returns default data to be saved with [DataFile.save](#save) or [[save]} methods.
 If same data file requested multiple times returns cached data file. Absolute path of the file is used as cache key.
@@ -674,7 +674,7 @@ ___
 
 ▸ **loadAll**(`paths`: string[], `options`: object): *Promise‹[DataFile](#classesdatafilemd)[]›*
 
-*Defined in [manager.ts:72](https://github.com/ozum/edit-config/blob/010fc49/src/manager.ts#L72)*
+*Defined in [manager.ts:72](https://github.com/ozum/edit-config/blob/8c9c7d8/src/manager.ts#L72)*
 
 Reads data from all given files and caches them. If same data file requested multiple times returns cached data file. Absolute path of the file is used as cache key.
 
@@ -702,7 +702,7 @@ ___
 
 ▸ **saveAll**(): *Promise‹void›*
 
-*Defined in [manager.ts:79](https://github.com/ozum/edit-config/blob/010fc49/src/manager.ts#L79)*
+*Defined in [manager.ts:79](https://github.com/ozum/edit-config/blob/8c9c7d8/src/manager.ts#L79)*
 
 **Returns:** *Promise‹void›*
 
@@ -731,7 +731,7 @@ ___
 
 *Inherited from [ManagerFromDataOptions](#interfacesmanagerfromdataoptionsmd).[defaultFormat](#optional-defaultformat)*
 
-*Defined in [types.ts:66](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L66)*
+*Defined in [types.ts:66](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L66)*
 
 The default format to be used if file format cannot be determined from file name and content.
 
@@ -741,7 +741,7 @@ ___
 
 • **logger**? : *Logger*
 
-*Defined in [types.ts:84](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L84)*
+*Defined in [types.ts:84](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L84)*
 
 Winston compatible Logger to be used when logging.
 
@@ -751,7 +751,7 @@ ___
 
 • **prettierConfig**? : *PrettierConfig*
 
-*Defined in [types.ts:88](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L88)*
+*Defined in [types.ts:88](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L88)*
 
 Prettier configuration to be used. If not provided determined automatically.
 
@@ -763,7 +763,7 @@ ___
 
 *Inherited from [ManagerFromDataOptions](#interfacesmanagerfromdataoptionsmd).[readOnly](#optional-readonly)*
 
-*Defined in [types.ts:70](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L70)*
+*Defined in [types.ts:70](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L70)*
 
 Whether file can be saved using this library.
 
@@ -775,7 +775,7 @@ ___
 
 *Inherited from [ManagerFromDataOptions](#interfacesmanagerfromdataoptionsmd).[rootDataPath](#optional-rootdatapath)*
 
-*Defined in [types.ts:68](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L68)*
+*Defined in [types.ts:68](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L68)*
 
 If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded.
 
@@ -785,7 +785,7 @@ ___
 
 • **rootDir**? : *undefined | string*
 
-*Defined in [types.ts:86](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L86)*
+*Defined in [types.ts:86](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L86)*
 
 Root directory for file. If provided, relative path is based on this root directory.
 
@@ -808,7 +808,7 @@ Root directory for file. If provided, relative path is based on this root direct
 
 • **cosmiconfig**? : *boolean | object*
 
-*Defined in [types.ts:96](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L96)*
+*Defined in [types.ts:96](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L96)*
 
 Whether to use [https://www.npmjs.com/package/cosmiconfig](#optional-cosmiconfig) to load configuration. Set `true` for default cosmiconfig options or provide an object with `options` for cosmiconfig options and `searchFrom` to provide `cosmiconfig.search()` parameter.
 
@@ -818,7 +818,7 @@ ___
 
 • **defaultData**? : *undefined | object*
 
-*Defined in [types.ts:94](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L94)*
+*Defined in [types.ts:94](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L94)*
 
 If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded.
 
@@ -830,7 +830,7 @@ ___
 
 *Inherited from [ManagerFromDataOptions](#interfacesmanagerfromdataoptionsmd).[defaultFormat](#optional-defaultformat)*
 
-*Defined in [types.ts:66](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L66)*
+*Defined in [types.ts:66](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L66)*
 
 The default format to be used if file format cannot be determined from file name and content.
 
@@ -842,7 +842,7 @@ ___
 
 *Inherited from [DataFileFromDataOptions](#interfacesdatafilefromdataoptionsmd).[logger](#optional-logger)*
 
-*Defined in [types.ts:84](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L84)*
+*Defined in [types.ts:84](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L84)*
 
 Winston compatible Logger to be used when logging.
 
@@ -854,7 +854,7 @@ ___
 
 *Inherited from [DataFileFromDataOptions](#interfacesdatafilefromdataoptionsmd).[prettierConfig](#optional-prettierconfig)*
 
-*Defined in [types.ts:88](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L88)*
+*Defined in [types.ts:88](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L88)*
 
 Prettier configuration to be used. If not provided determined automatically.
 
@@ -866,7 +866,7 @@ ___
 
 *Inherited from [ManagerFromDataOptions](#interfacesmanagerfromdataoptionsmd).[readOnly](#optional-readonly)*
 
-*Defined in [types.ts:70](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L70)*
+*Defined in [types.ts:70](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L70)*
 
 Whether file can be saved using this library.
 
@@ -878,7 +878,7 @@ ___
 
 *Inherited from [ManagerFromDataOptions](#interfacesmanagerfromdataoptionsmd).[rootDataPath](#optional-rootdatapath)*
 
-*Defined in [types.ts:68](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L68)*
+*Defined in [types.ts:68](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L68)*
 
 If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded.
 
@@ -890,7 +890,7 @@ ___
 
 *Inherited from [DataFileFromDataOptions](#interfacesdatafilefromdataoptionsmd).[rootDir](#optional-rootdir)*
 
-*Defined in [types.ts:86](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L86)*
+*Defined in [types.ts:86](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L86)*
 
 Root directory for file. If provided, relative path is based on this root directory.
 
@@ -915,7 +915,7 @@ Root directory for file. If provided, relative path is based on this root direct
 
 • **defaultFormat**? : *[WritableFileFormat](#writablefileformat)*
 
-*Defined in [types.ts:66](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L66)*
+*Defined in [types.ts:66](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L66)*
 
 The default format to be used if file format cannot be determined from file name and content.
 
@@ -925,7 +925,7 @@ ___
 
 • **readOnly**? : *undefined | false | true*
 
-*Defined in [types.ts:70](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L70)*
+*Defined in [types.ts:70](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L70)*
 
 Whether file can be saved using this library.
 
@@ -935,7 +935,7 @@ ___
 
 • **rootDataPath**? : *DataPath*
 
-*Defined in [types.ts:68](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L68)*
+*Defined in [types.ts:68](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L68)*
 
 If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded.
 
@@ -958,7 +958,7 @@ If only some part of the data/config will be used, this is the data path to be u
 
 • **cosmiconfig**? : *boolean | object*
 
-*Defined in [types.ts:78](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L78)*
+*Defined in [types.ts:78](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L78)*
 
 Whether to use [https://www.npmjs.com/package/cosmiconfig](#optional-cosmiconfig) to load configuration. Set `true` for default cosmiconfig options or provide an object with `options` for cosmiconfig options and `searchFrom` to provide `cosmiconfig.search()` parameter.
 
@@ -968,7 +968,7 @@ ___
 
 • **defaultData**? : *any*
 
-*Defined in [types.ts:76](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L76)*
+*Defined in [types.ts:76](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L76)*
 
 The default data to be used if file does not exist.
 
@@ -980,7 +980,7 @@ ___
 
 *Inherited from [ManagerFromDataOptions](#interfacesmanagerfromdataoptionsmd).[defaultFormat](#optional-defaultformat)*
 
-*Defined in [types.ts:66](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L66)*
+*Defined in [types.ts:66](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L66)*
 
 The default format to be used if file format cannot be determined from file name and content.
 
@@ -992,7 +992,7 @@ ___
 
 *Inherited from [ManagerFromDataOptions](#interfacesmanagerfromdataoptionsmd).[readOnly](#optional-readonly)*
 
-*Defined in [types.ts:70](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L70)*
+*Defined in [types.ts:70](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L70)*
 
 Whether file can be saved using this library.
 
@@ -1004,7 +1004,7 @@ ___
 
 *Inherited from [ManagerFromDataOptions](#interfacesmanagerfromdataoptionsmd).[rootDataPath](#optional-rootdatapath)*
 
-*Defined in [types.ts:68](https://github.com/ozum/edit-config/blob/010fc49/src/types.ts#L68)*
+*Defined in [types.ts:68](https://github.com/ozum/edit-config/blob/8c9c7d8/src/types.ts#L68)*
 
 If only some part of the data/config will be used, this is the data path to be used. For example if this is `scripts`, only `script` key of the data is loaded.
 
