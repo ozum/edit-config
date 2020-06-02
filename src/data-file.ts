@@ -9,19 +9,7 @@ import has from "lodash.has";
 import merge from "lodash.merge";
 import unset from "lodash.unset";
 import {
-  DataFileFromDataOptions,
-  Key,
-  Logger,
-  LogLevel,
-  FileFormat,
-  PrettierConfig,
-  DataPath,
-  PredicateFunction,
-  StringDataPath,
-  DataFileLoadOptions,
-} from "./types";
-
-import {
+  noLogger,
   sortKeys,
   getPrettierConfig,
   prettier,
@@ -35,6 +23,18 @@ import {
   getArrayPath,
   getFormatFromFileName,
 } from "./helper";
+import {
+  DataFileFromDataOptions,
+  Key,
+  Logger,
+  LogLevel,
+  FileFormat,
+  PrettierConfig,
+  DataPath,
+  PredicateFunction,
+  StringDataPath,
+  DataFileLoadOptions,
+} from "./types";
 
 /**
  * Read, edit and write configuration files.
@@ -72,7 +72,7 @@ export default class DataFile {
     this.#path = path;
     this.data = data;
     this.#format = options.format ?? "json";
-    this.#logger = options.logger ?? console;
+    this.#logger = options.logger ?? noLogger;
     this.#prettierConfig = options.prettierConfig;
     this.#rootDir = options.rootDir;
     this.#defaultData = options.defaultData;
@@ -235,10 +235,6 @@ export default class DataFile {
    * @example
    * dataFile.sortKeys("scripts", { start: ["build", "lint"], end: {"dependencies", "devDependencies"} });
    */
-  // public sortKeys(path: DataPath, options?: { start: string[]; end: string[] }): this;
-
-  // public sortKeys(options?: { start: string[]; end: string[] }): this;
-
   public sortKeys(path: DataPath, options?: { start: string[]; end: string[] }): this {
     const hasPath = !(Array.isArray(path) && path.length === 0);
     if (hasPath && this.has(path as any)) {

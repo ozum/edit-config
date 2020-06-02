@@ -1,7 +1,7 @@
 import { join, isAbsolute, relative } from "path";
 import { Logger, PrettierConfig, WritableFileFormat, ManagerLoadOptions, ManagerFromDataOptions } from "./types";
 import DataFile from "./data-file";
-import { getPrettierConfig } from "./helper";
+import { getPrettierConfig, noLogger } from "./helper";
 
 /**
  * Manage multiple configuration files using [[DataFile]].
@@ -14,13 +14,11 @@ export default class Manager {
 
   /**
    * Creates a manager to manage multiple data files.
+   *
+   * @param root is the root path to be used for all relative file paths.
+   * @param logger is the winston compatible Logger to be used when logging.
    */
-  public constructor({
-    /** Root path to be used for all relative file paths */
-    root = "",
-    /** Winston compatible Logger to be used when logging. */
-    logger = console as Logger,
-  } = {}) {
+  public constructor({ root = "", logger = noLogger } = {}) {
     this.#root = root;
     this.#logger = logger;
   }
