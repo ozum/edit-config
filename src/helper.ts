@@ -138,7 +138,7 @@ export function getFormatFromFileName(path: string): FileFormat {
  * @param defaultData Default data to be used if file does not exist.
  * @param rootDataPath is the path to return data from.
  * @returns data and format.
- * @throws if file cannot be parsed.
+ * @throws if file cannot be parsed, content is empty, number or string.
  */
 export async function readData(path: string, defaultData: object, rootDataPath?: DataPath): Promise<{ format: FileFormat; data: object }> {
   const formatFromFileName = getFormatFromFileName(path);
@@ -146,7 +146,12 @@ export async function readData(path: string, defaultData: object, rootDataPath?:
   if (formatFromFileName === "js") return { data: await import(path), format: "js" };
   const content = await readFileTolerated(path);
 
-  return content === undefined ? { data: defaultData, format: formatFromFileName } : parseString(content, rootDataPath);
+  const result = content === undefined ? { data: defaultData, format: formatFromFileName } : await parseString(content, rootDataPath);
+
+  if (result.data instanceof Number || typeof result.data === "number" || typeof result.data === "string" || result.data === undefined)
+    throw new Error(`File content must be an object: '${path}'.`);
+
+  return result;
 }
 
 /**

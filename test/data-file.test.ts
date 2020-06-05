@@ -30,6 +30,18 @@ describe("DataFile", () => {
     await expect(DataFile.load("non-existing-file.xyz")).rejects.toThrow("Unsupported file type");
   });
 
+  it("should throw for string content even parseable.", async () => {
+    await expect(DataFile.load(join(__dirname, "example/text-file"))).rejects.toThrow("must be an object");
+  });
+
+  it("should throw for number content even parseable.", async () => {
+    await expect(DataFile.load(join(__dirname, "example/number-file"))).rejects.toThrow("must be an object");
+  });
+
+  it("should throw for empty content even parseable.", async () => {
+    await expect(DataFile.load(join(__dirname, "example/empty-file"))).rejects.toThrow("must be an object");
+  });
+
   it("should load JS file.", async () => {
     expect(eslintConfig.get("name")).toBe("example-eslint");
   });
