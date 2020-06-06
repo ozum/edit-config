@@ -54,6 +54,11 @@ describe("DataFile", () => {
     expect(huskyConfig.get("hooks.pre-commit")).toBe("lint");
   });
 
+  it("should load cosmiconfig data 2.", async () => {
+    const dataFile = await DataFile.load("non-existing", { cosmiconfig: true });
+    expect(dataFile.data).toEqual({});
+  });
+
   it("should reload cosmiconfig data.", async () => {
     await huskyConfig.reload();
     expect(huskyConfig.get("hooks.pre-commit")).toBe("lint");
