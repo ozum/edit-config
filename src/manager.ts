@@ -58,7 +58,7 @@ export default class Manager {
     if (this.#prettierConfig === undefined) this.#prettierConfig = (await getPrettierConfig(fullPath)) || null;
 
     const allOptions = { ...options, logger: this.#logger, rootDir: this.#root, prettierConfig: this.#prettierConfig };
-    this.#files[relative("/", path)] = DataFile.fromData(fullPath, data, allOptions);
+    this.#files[relative("/", path)] = await DataFile.fromData(fullPath, data, allOptions);
 
     return this.#files[relative("/", path)];
   }

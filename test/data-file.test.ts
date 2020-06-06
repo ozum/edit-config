@@ -19,7 +19,9 @@ describe("DataFile", () => {
   });
 
   it("should load non existing file.", async () => {
-    expect((await DataFile.load("non-existing-file.json")).data).toEqual({});
+    const dataFile = await DataFile.load("non-existing-file.json");
+    expect(dataFile.data).toEqual({});
+    expect(dataFile.found).toBe(false);
   });
 
   it("should load non existing file without extension.", async () => {
@@ -54,9 +56,10 @@ describe("DataFile", () => {
     expect(huskyConfig.get("hooks.pre-commit")).toBe("lint");
   });
 
-  it("should load cosmiconfig data 2.", async () => {
+  it("should load cosmiconfig data for non existing config.", async () => {
     const dataFile = await DataFile.load("non-existing", { cosmiconfig: true });
     expect(dataFile.data).toEqual({});
+    expect(dataFile.found).toBe(false);
   });
 
   it("should reload cosmiconfig data.", async () => {
@@ -81,13 +84,13 @@ describe("DataFile", () => {
   });
 
   describe("fromData", () => {
-    it("should create DataFile from data.", () => {
-      const dataFile = DataFile.fromData("some.json", { a: 1 });
+    it("should create DataFile from data.", async () => {
+      const dataFile = await DataFile.fromData("some.json", { a: 1 });
       expect(dataFile.data).toEqual({ a: 1 });
     });
 
-    it("should not create DataFile for JS file type.", () => {
-      expect(() => DataFile.fromData("some.js", {})).toThrow("Cannot create DataFile");
+    it("should not create DataFile for JS file type.", async () => {
+      await expect(DataFile.fromData("some.js", {})).rejects.toThrow("Cannot create DataFile");
     });
   });
 

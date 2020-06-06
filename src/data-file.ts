@@ -2,7 +2,7 @@
 import { isAbsolute, relative, normalize, join } from "path";
 import commentJson from "comment-json";
 import yaml from "js-yaml";
-import { outputFile } from "fs-extra";
+import { outputFile, pathExists } from "fs-extra";
 import get from "lodash.get";
 import set from "lodash.set";
 import has from "lodash.has";
@@ -43,6 +43,9 @@ export default class DataFile {
   /** Actual data */
   public data: object;
 
+  /** Whether file exists or cosmiconfig configuration found. */
+  public found: boolean;
+
   readonly #defaultData?: object;
   readonly #path: string;
   readonly #format: FileFormat;
@@ -58,6 +61,7 @@ export default class DataFile {
   private constructor(
     path: string,
     data: object,
+    found: boolean,
     options: {
       logger?: Logger;
       format?: FileFormat;
@@ -78,6 +82,7 @@ export default class DataFile {
     this.#defaultData = options.defaultData;
     this.#rootDataPath = options.rootDataPath ? (getArrayPath(options.rootDataPath) as string[]) : undefined;
     this.#readOnly = options.readOnly === true;
+    this.found = found;
   }
 
   /** File path relative to root. */
@@ -308,12 +313,13 @@ export default class DataFile {
    * @param options are options.
    * @returns [[DataFile]] instance.
    */
-  public static fromData(path: string, data: object, options: DataFileFromDataOptions = {}): DataFile {
+  public static async fromData(path: string, data: object, options: DataFileFromDataOptions = {}): Promise<DataFile> {
     const fullPath = isAbsolute(path) || !options.rootDir ? path : join(options.rootDir, path);
     const formatFromFileName = getFormatFromFileName(fullPath);
     if (formatFromFileName === "js") throw new Error(`Cannot create DataFile from data for 'js' file: ${fullPath}`);
     const format = formatFromFileName === "" ? options.defaultFormat : formatFromFileName;
-    return new DataFile(fullPath, data, { defaultData: data, format, ...options });
+    const found = await pathExists(fullPath);
+    return new DataFile(fullPath, data, found, { defaultData: data, format, ...options });
   }
 
   /**
@@ -332,11 +338,11 @@ export default class DataFile {
       const { options: cOptions, searchFrom } = typeof cosmiconfig === "object" ? cosmiconfig : ({} as any);
       const result = await getCosmiconfigResult(path, defaultData, cOptions, searchFrom, rootDataPath);
       const format = result.format === "" ? options?.defaultFormat : result.format;
-      return new DataFile(result.path, result.data, { ...options, ...result, format });
+      return new DataFile(result.path, result.data, result.found, { ...options, ...result, format });
     }
 
-    const { data, format } = await readData(fullPath, defaultData, rootDataPath);
-    return new DataFile(fullPath, data, { format: format || options?.defaultFormat, ...options });
+    const { data, format, found } = await readData(fullPath, defaultData, rootDataPath);
+    return new DataFile(fullPath, data, found, { format: format || options?.defaultFormat, ...options });
   }
 
   /**

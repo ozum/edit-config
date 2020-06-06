@@ -140,18 +140,22 @@ export function getFormatFromFileName(path: string): FileFormat {
  * @returns data and format.
  * @throws if file cannot be parsed, content is empty, number or string.
  */
-export async function readData(path: string, defaultData: object, rootDataPath?: DataPath): Promise<{ format: FileFormat; data: object }> {
+export async function readData(
+  path: string,
+  defaultData: object,
+  rootDataPath?: DataPath
+): Promise<{ format: FileFormat; data: object; found: boolean }> {
   const formatFromFileName = getFormatFromFileName(path);
 
-  if (formatFromFileName === "js") return { data: await import(path), format: "js" };
+  if (formatFromFileName === "js") return { data: await import(path), format: "js", found: true };
   const content = await readFileTolerated(path);
 
-  const result = content === undefined ? { data: defaultData, format: formatFromFileName } : await parseString(content, rootDataPath);
+  const result = content === undefined ? { data: defaultData, format: formatFromFileName } : parseString(content, rootDataPath);
 
   if (result.data instanceof Number || typeof result.data === "number" || typeof result.data === "string" || result.data === undefined)
     throw new Error(`File content must be an object: '${path}'.`);
 
-  return result;
+  return { ...result, found: content !== undefined };
 }
 
 /**
@@ -204,7 +208,7 @@ export async function getCosmiconfigResult(
   options?: CosmiconfigOptions,
   searchFrom?: string,
   rootDataPath?: DataPath
-): Promise<{ format: FileFormat; data: object; path: string; rootDataPath?: DataPath }> {
+): Promise<{ format: FileFormat; data: object; path: string; rootDataPath?: DataPath; found: boolean }> {
   const result = await cosmiconfig(module, options).search(searchFrom);
 
   if (result) {
@@ -213,12 +217,12 @@ export async function getCosmiconfigResult(
     let format = getFormatFromFileName(result.filepath);
     if (format === "") format = (await readData(result.filepath, defaultData)).format;
     const data = (rootDataPath ? get(result.config, rootDataPath as any) : result.config) || defaultData;
-    return { format, data, path: result.filepath, rootDataPath: fullDataPath };
+    return { format, data, path: result.filepath, rootDataPath: fullDataPath, found: true };
   }
 
   const path = searchFrom ? joinPaths(searchFrom, `.${module}rc`) : `.${module}rc`;
   const { data, format } = await readData(path, defaultData);
-  return { format, data, path, rootDataPath };
+  return { format, data, path, rootDataPath, found: false };
 }
 
 /**
