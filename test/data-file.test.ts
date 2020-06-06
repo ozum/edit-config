@@ -52,8 +52,14 @@ describe("DataFile", () => {
     expect(someConfig.get("a")).toBe(1);
   });
 
-  it("should load cosmiconfig data.", async () => {
+  it("should load cosmiconfig data from package.json.", async () => {
     expect(huskyConfig.get("hooks.pre-commit")).toBe("lint");
+  });
+
+  it("should load cosmiconfig data from .xxxrc file.", async () => {
+    const dataFile = await DataFile.load("prettier", { rootDir: join(__dirname, "example"), cosmiconfig: true });
+    expect(dataFile.data).toEqual({ a: 1 });
+    expect(dataFile.found).toBe(true);
   });
 
   it("should load cosmiconfig data for non existing config.", async () => {

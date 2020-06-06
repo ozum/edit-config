@@ -1,5 +1,5 @@
 import { cosmiconfig, Options as CosmiconfigOptions } from "cosmiconfig";
-import { extname, basename } from "path";
+import { extname, basename, join } from "path";
 import chalk from "chalk";
 import commentJson, { assign } from "comment-json";
 import yaml from "js-yaml";
@@ -57,7 +57,7 @@ export function arrify<T>(input: T | T[]): T[] {
  * @param param1.end are ordered keys to appear at the end of object.
  * @returns same object with ordered keys.
  */
-export function sortKeys(object: object, { start = [] as string[], end = [] as string[] } = {}): object {
+export function sortKeys<T extends object>(object: T, { start = [] as string[], end = [] as string[] } = {}): T {
   const objectKeys = Object.keys(object);
   const allKeys = [...new Set([...start, ...objectKeys.filter((k) => !end.includes(k)).sort(), ...end])];
   const keys = allKeys.filter((k) => Object.prototype.hasOwnProperty.call(object, k));
@@ -144,7 +144,7 @@ export async function readData(
   path: string,
   defaultData: object,
   rootDataPath?: DataPath
-): Promise<{ format: FileFormat; data: object; found: boolean }> {
+): Promise<{ format: FileFormat; data: any; found: boolean }> {
   const formatFromFileName = getFormatFromFileName(path);
 
   if (formatFromFileName === "js") return { data: await import(path), format: "js", found: true };
@@ -219,10 +219,7 @@ export async function getCosmiconfigResult(
     const data = (rootDataPath ? get(result.config, rootDataPath as any) : result.config) || defaultData;
     return { format, data, path: result.filepath, rootDataPath: fullDataPath, found: true };
   }
-
-  const path = searchFrom ? joinPaths(searchFrom, `.${module}rc`) : `.${module}rc`;
-  const { data, format } = await readData(path, defaultData);
-  return { format, data, path, rootDataPath, found: false };
+  return { format: "", data: defaultData, path: join(searchFrom || "", `.${module}rc`), rootDataPath, found: false };
 }
 
 /**

@@ -39,9 +39,9 @@ import {
 /**
  * Read, edit and write configuration files.
  */
-export default class DataFile {
+export default class DataFile<T extends object = any> {
   /** Actual data */
-  public data: object;
+  public data: T;
 
   /** Whether file exists or cosmiconfig configuration found. */
   public found: boolean;
@@ -60,7 +60,7 @@ export default class DataFile {
 
   private constructor(
     path: string,
-    data: object,
+    data: T,
     found: boolean,
     options: {
       logger?: Logger;
@@ -335,8 +335,9 @@ export default class DataFile {
     const fullPath = isAbsolute(path) || cosmiconfig || !rootDir ? path : join(rootDir, path);
 
     if (cosmiconfig) {
-      const { options: cOptions, searchFrom } = typeof cosmiconfig === "object" ? cosmiconfig : ({} as any);
-      const result = await getCosmiconfigResult(path, defaultData, cOptions, searchFrom, rootDataPath);
+      const searchFrom = (cosmiconfig as any)?.searchFrom ?? rootDir;
+      const cosmiconfigOptions = (cosmiconfig as any)?.options;
+      const result = await getCosmiconfigResult(path, defaultData, cosmiconfigOptions, searchFrom, rootDataPath);
       const format = result.format === "" ? options?.defaultFormat : result.format;
       return new DataFile(result.path, result.data, result.found, { ...options, ...result, format });
     }
