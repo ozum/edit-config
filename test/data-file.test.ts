@@ -1,9 +1,9 @@
 /* eslint-disable no-return-assign */
 import { join } from "path";
-import { Manager, DataFile, noLogger } from "../src";
+import { Manager, DataFile } from "../src";
 
 const root = join(__dirname, "example");
-const manager = new Manager({ root, logger: noLogger });
+const manager = new Manager({ root });
 
 let [packageJson, eslintConfig, huskyConfig, someConfig]: DataFile[] = [];
 

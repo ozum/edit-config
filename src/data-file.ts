@@ -238,7 +238,8 @@ export default class DataFile<T extends object = any> {
    * @param end are ordered keys to appear at the end of given path when saved.
    *
    * @example
-   * dataFile.sortKeys("scripts", { start: ["build", "lint"], end: {"dependencies", "devDependencies"} });
+   * dataFile.sortKeys("scripts", { start: ["build", "lint"], end: ["release"] });
+   * dataFile.sortKeys({ start: ["name", "description"], end: ["dependencies", "devDependencies"] });
    */
   public sortKeys(path: DataPath, options?: { start: string[]; end: string[] }): this {
     const hasPath = !(Array.isArray(path) && path.length === 0);

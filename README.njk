@@ -51,12 +51,6 @@ const logger = createLogger({
 const packageJson = await DataFile.load("package.json", { logger });
 ```
 
-**Disable Logger**
-```ts
-import { DataFile, noLogger } from "edit-config";
-const packageJson = await DataFile.load("package.json", { logger: noLogger });
-```
-
 **Conditional Update**
 ```ts
 const packageJson = await DataFile.load("package.json");
