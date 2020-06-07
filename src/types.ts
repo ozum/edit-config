@@ -1,12 +1,12 @@
 import { Options as CosmiconfigOptions } from "cosmiconfig";
 import DataFile from "./data-file";
 
-/** @ignore */
+/** Logger */
 export interface Logger {
   log: (...message: Array<string>) => void | undefined;
 }
 
-/** @ignore */
+/** Log levels */
 export const enum LogLevel {
   Error = "error",
   Warn = "warn",

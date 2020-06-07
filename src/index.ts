@@ -11,6 +11,8 @@ export {
   ManagerLoadOptions,
   DataFileFromDataOptions,
   DataFileLoadOptions,
+  Logger,
+  LogLevel,
 } from "./types";
 
 export { Options as CosmiconfigOptions } from "cosmiconfig";
