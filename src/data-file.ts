@@ -198,7 +198,7 @@ export default class DataFile<T extends object = any> {
       const sources = values.map((value) => evaluate(value, this, path));
       if (hasPath && !this.has(path)) this.set(path, merge({}, ...sources));
       else merge(object, ...sources);
-      this.logOperation("merge", shouldDo, path);
+      this.logOperation("merged", shouldDo, path);
       this.#modifiedKeys.set.add(getStringPath(path));
     }
 
