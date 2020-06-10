@@ -7,7 +7,7 @@ export interface Logger {
 }
 
 /** Log levels */
-export const enum LogLevel {
+export enum LogLevel {
   Error = "error",
   Warn = "warn",
   Info = "info",
