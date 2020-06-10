@@ -6,15 +6,7 @@ export interface Logger {
   log: (...args: Array<any>) => any;
 }
 
-/** Log levels */
-export enum LogLevel {
-  Error = "error",
-  Warn = "warn",
-  Info = "info",
-  Verbose = "verbose",
-  Debug = "debug",
-  Silly = "silly",
-}
+export type LogLevel = "error" | "warn" | "info" | "http" | "verbose" | "debug" | "silly";
 
 /** Data file format. */
 export type FileFormat = "" | "json" | "yaml" | "js";

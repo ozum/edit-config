@@ -27,7 +27,6 @@ import {
   DataFileFromDataOptions,
   Key,
   Logger,
-  LogLevel,
   FileFormat,
   PrettierConfig,
   DataPath,
@@ -257,14 +256,14 @@ export default class DataFile<T extends object = any> {
     throwOnReadOnly = true,
   } = {}): Promise<void> {
     if (this.readOnly) {
-      const logLevel = throwOnReadOnly ? LogLevel.Error : LogLevel.Warn;
+      const logLevel = throwOnReadOnly ? "error" : "warn";
       this.#logger.log(logLevel, `File not saved: '${em(this.shortPath)}' is marked as readonly or is a 'js' file.`);
       if (throwOnReadOnly) throw new Error(`Cannot save: ${this.#path} is marked as readonly or is a 'js' file.`);
       return;
     }
 
     await outputFile(this.#path, await this.serialize(true));
-    this.#logger.log(LogLevel.Info, `File saved: ${em(this.shortPath)}`);
+    this.#logger.log("info", `File saved: ${em(this.shortPath)}`);
   }
 
   /**
@@ -296,7 +295,7 @@ export default class DataFile<T extends object = any> {
    */
   private logOperation(op: string, success: boolean, path?: DataPath): void {
     const not = success ? "" : "not ";
-    const level = success ? LogLevel.Info : LogLevel.Warn;
+    const level = success ? "info" : "warn";
     this.#logger.log(level, `Key ${not}${op}: '${em(getStringPath(path || "[ROOT]"))}' in '${em(this.shortPath)}' .`);
   }
 
