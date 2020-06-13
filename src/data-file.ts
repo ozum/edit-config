@@ -137,8 +137,8 @@ export default class DataFile<T extends object = any> {
    *   .set("script.build", "tsc")
    *   .set(["scripts", "test"], "jest", { if: (value) => value !== "mocha" });
    */
-  public set(path: DataPath, value: any, options: { if?: PredicateFunction } = {}): this {
-    const shouldDo = predicate(options.if, this, path);
+  public set(path: DataPath, value: any, { if: condition }: { if?: PredicateFunction } = {}): this {
+    const shouldDo = predicate(condition, this, path);
     if (shouldDo) {
       set(this.data, path as any, evaluate(value, this, path));
       this.#modifiedKeys.set.add(getStringPath(path));
@@ -159,8 +159,8 @@ export default class DataFile<T extends object = any> {
    *   .delete("script.build")
    *   .delete(["scripts", "test"], { if: (value) => value !== "jest" });
    */
-  public delete(path: DataPath, options: { if?: PredicateFunction } = {}): this {
-    const shouldDo = predicate(options.if, this, path);
+  public delete(path: DataPath, { if: condition }: { if?: PredicateFunction } = {}): this {
+    const shouldDo = predicate(condition, this, path);
     if (shouldDo) {
       unset(this.data, path as any);
       this.#modifiedKeys.deleted.add(getStringPath(path));
@@ -240,12 +240,12 @@ export default class DataFile<T extends object = any> {
    * dataFile.sortKeys("scripts", { start: ["build", "lint"], end: ["release"] });
    * dataFile.sortKeys({ start: ["name", "description"], end: ["dependencies", "devDependencies"] });
    */
-  public sortKeys(path: DataPath, options?: { start: string[]; end: string[] }): this {
+  public sortKeys(path: DataPath, { start, end }: { start?: string[]; end?: string[] } = {}): this {
     const hasPath = !(Array.isArray(path) && path.length === 0);
     if (hasPath && this.has(path as any)) {
-      set(this.data, path as any, sortKeys(this.get(path), options));
+      set(this.data, path as any, sortKeys(this.get(path), { start, end }));
     } else if (!path) {
-      this.data = sortKeys(this.data, options);
+      this.data = sortKeys(this.data, { start, end });
     }
     return this;
   }
