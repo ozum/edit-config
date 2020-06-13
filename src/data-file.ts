@@ -296,7 +296,7 @@ export default class DataFile<T extends object = any> {
   private logOperation(op: string, success: boolean, path?: DataPath): void {
     const not = success ? "" : "not ";
     const level = success ? "info" : "warn";
-    this.#logger.log(level, `Key ${not}${op}: '${em(getStringPath(path || "[ROOT]"))}' in '${em(this.shortPath)}' .`);
+    this.#logger.log(level, `Key ${not}${op}: '${em(getStringPath(path || "[ROOT]"))}' in '${em(this.shortPath)}'.`);
   }
 
   //
