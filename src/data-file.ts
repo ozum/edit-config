@@ -232,6 +232,8 @@ export default class DataFile<T extends object = any> {
    * When keys/values added which are previously does not exist, they are added to the end of the file during file write.
    * This method allows reordering of the keys in given path. Required keys may be put at the beginning and of the order.
    *
+   * If you would like sort root object (`this.data`) use `sort` method or, provide use empty array `[]` as path, because `undefined`, '' and `null` are valid object keys.
+   *
    * @param path is data path of the property to order keys of.
    * @param start are ordered keys to appear at the beginning of given path when saved.
    * @param end are ordered keys to appear at the end of given path when saved.
@@ -242,11 +244,9 @@ export default class DataFile<T extends object = any> {
    */
   public sortKeys(path: DataPath, { start, end }: { start?: string[]; end?: string[] } = {}): this {
     const hasPath = !(Array.isArray(path) && path.length === 0);
-    if (hasPath && this.has(path as any)) {
-      set(this.data, path as any, sortKeys(this.get(path), { start, end }));
-    } else if (!path) {
-      this.data = sortKeys(this.data, { start, end });
-    }
+    if (hasPath && this.has(path as any)) set(this.data, path as any, sortKeys(this.get(path), { start, end }));
+    else this.data = sortKeys(this.data, { start, end });
+
     return this;
   }
 

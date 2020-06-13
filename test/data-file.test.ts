@@ -200,6 +200,12 @@ describe("DataFile", () => {
       packageJson.merge("scripts", { z: 1, a: 1, c: 1 }).sortKeys("scripts", { start: ["test"], end: ["a"] });
       expect(Object.keys(packageJson.get("scripts"))).toEqual(["test", "c", "z", "a"]);
     });
+
+    it("should sort root.", () => {
+      expect(Object.keys(packageJson.data)).toEqual(["name", "counter", "scripts", "husky"]);
+      packageJson.sortKeys([], { start: ["husky"] });
+      expect(Object.keys(packageJson.data)).toEqual(["husky", "counter", "name", "scripts"]);
+    });
   });
 
   describe("reload", () => {
