@@ -77,6 +77,7 @@ export default class Manager {
   }
 
   public async saveAll(): Promise<void> {
+    this.#logger.log("info", `Starting to save all files.`);
     await Promise.all(Object.values(this.#files).map((file) => file.save({ throwOnReadOnly: false })));
   }
 }
