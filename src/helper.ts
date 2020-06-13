@@ -59,7 +59,7 @@ export function arrify<T>(input: T | T[]): T[] {
  */
 export function sortKeys<T extends object>(object: T, { start = [] as string[], end = [] as string[] } = {}): T {
   const objectKeys = Object.keys(object);
-  const allKeys = [...new Set([...start, ...objectKeys.filter((k) => !end.includes(k)).sort(), ...end])];
+  const allKeys = Array.from(new Set([...start, ...objectKeys.filter((k) => !end.includes(k)).sort(), ...end]));
   const keys = allKeys.filter((k) => Object.prototype.hasOwnProperty.call(object, k));
   if (isEqual(keys, objectKeys)) return object;
   return assign({}, object, keys as any);
