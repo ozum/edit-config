@@ -9,7 +9,8 @@ import set from "lodash.set";
 import unset from "lodash.unset";
 import merge from "lodash.merge";
 import isEqual from "lodash.isequal";
-import cloneDeep from "lodash.clonedeep";
+import cloneDeep from "clone-deep";
+
 import {
   noLogger,
   getPrettierConfig,

@@ -11,16 +11,21 @@ export default class Manager {
   readonly #files: Record<string, DataFile> = {};
   readonly #logger: Logger;
   #prettierConfig?: PrettierConfig;
+  #saveIfChanged: boolean;
 
   /**
    * Creates a manager to manage multiple data files.
    *
    * @param root is the root path to be used for all relative file paths.
    * @param logger is the winston compatible Logger to be used when logging.
+   * @paraö saveIfChanged is whether to save file only if data is changed. Clones initial data deeply to check during save.
    */
-  public constructor({ root = process.cwd(), logger = noLogger }: { root?: string; logger?: Logger } = {} as any) {
+  public constructor(
+    { root = process.cwd(), logger = noLogger, saveIfChanged }: { root?: string; logger?: Logger; saveIfChanged?: boolean } = {} as any
+  ) {
     this.#root = root;
     this.#logger = logger;
+    this.#saveIfChanged = saveIfChanged || false;
   }
 
   /**
@@ -38,7 +43,13 @@ export default class Manager {
     const fullPath = isAbsolute(path) || options.cosmiconfig ? path : join(this.#root, path);
     if (this.#prettierConfig === undefined) this.#prettierConfig = (await getPrettierConfig(fullPath)) || null;
     if (!this.#files[path]) {
-      const allOptions = { ...options, logger: this.#logger, rootDir: this.#root, prettierConfig: this.#prettierConfig };
+      const allOptions = {
+        saveIfChanged: this.#saveIfChanged,
+        ...options,
+        logger: this.#logger,
+        rootDir: this.#root,
+        prettierConfig: this.#prettierConfig,
+      };
       this.#files[relative("/", path)] = await DataFile.load(fullPath, allOptions);
     }
 
@@ -57,7 +68,13 @@ export default class Manager {
     const fullPath = isAbsolute(path) ? path : join(this.#root, path);
     if (this.#prettierConfig === undefined) this.#prettierConfig = (await getPrettierConfig(fullPath)) || null;
 
-    const allOptions = { ...options, logger: this.#logger, rootDir: this.#root, prettierConfig: this.#prettierConfig };
+    const allOptions = {
+      saveIfChanged: this.#saveIfChanged,
+      ...options,
+      logger: this.#logger,
+      rootDir: this.#root,
+      prettierConfig: this.#prettierConfig,
+    };
     this.#files[relative("/", path)] = await DataFile.fromData(fullPath, data, allOptions);
 
     return this.#files[relative("/", path)];
@@ -68,10 +85,13 @@ export default class Manager {
    *
    * @param paths are arry of paths of the files. Could be an absolute path or relative to root path option provided to [[Manager]].
    * @param options are options.
+   * @param options.defaultFormat is the default format to be used if file format cannot be determined from file name and content.
+   * @param options.defaultData is the default data to be used if file does not exist.
+   * @param options.saveIfChanged is whether to save file only if data is changed. Clones initial data deeply to check during save.
    */
   public async loadAll(
     paths: string[],
-    options: { defaultFormat?: WritableFileFormat; defaultData?: any; readOnly?: boolean } = {}
+    options: { defaultFormat?: WritableFileFormat; defaultData?: any; readOnly?: boolean; saveIfChanged?: boolean } = {}
   ): Promise<DataFile[]> {
     return Promise.all(paths.map((path) => this.load(path, options)));
   }
