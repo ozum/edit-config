@@ -60,6 +60,8 @@ export interface ManagerFromDataOptions {
   rootDataPath?: DataPath;
   /** Whether file can be saved using this library. */
   readOnly?: boolean;
+  /** Save only if data is changed. Clones initial data deeply to check during save. */
+  saveIfChanged?: boolean;
 }
 
 /** [[Manager.load]] options. */

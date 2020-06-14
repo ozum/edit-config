@@ -1,16 +1,17 @@
 /* eslint-disable no-param-reassign */
 import { isAbsolute, relative, normalize, join } from "path";
-import commentJson from "comment-json";
+import commentJson, { assign } from "comment-json";
 import yaml from "js-yaml";
 import { outputFile, pathExists } from "fs-extra";
+import has from "lodash.has";
 import get from "lodash.get";
 import set from "lodash.set";
-import has from "lodash.has";
-import merge from "lodash.merge";
 import unset from "lodash.unset";
+import merge from "lodash.merge";
+import isEqual from "lodash.isequal";
+import cloneDeep from "lodash.clonedeep";
 import {
   noLogger,
-  sortKeys,
   getPrettierConfig,
   prettier,
   getStringPath,
@@ -51,10 +52,12 @@ export default class DataFile<T extends object = any> {
   readonly #logger: Logger;
   readonly #rootDir?: string;
   readonly #modifiedKeys: { set: Set<StringDataPath>; deleted: Set<StringDataPath> } = { set: new Set(), deleted: new Set() };
-
   readonly #rootDataPath?: string[];
   readonly #readOnly: boolean;
+  readonly #initialData?: T;
+  readonly #saveIfChanged: boolean;
 
+  #sorted = false;
   #prettierConfig?: PrettierConfig;
 
   private constructor(
@@ -70,6 +73,7 @@ export default class DataFile<T extends object = any> {
       rootDataPath?: DataPath;
       rootDir?: string;
       readOnly?: boolean;
+      saveIfChanged?: boolean;
     }
   ) {
     this.#path = path;
@@ -82,6 +86,8 @@ export default class DataFile<T extends object = any> {
     this.#rootDataPath = options.rootDataPath ? (getArrayPath(options.rootDataPath) as string[]) : undefined;
     this.#readOnly = options.readOnly === true;
     this.found = found;
+    this.#saveIfChanged = options.saveIfChanged || false;
+    if (this.#saveIfChanged) this.#initialData = cloneDeep(data);
   }
 
   /** File path relative to root. */
@@ -229,6 +235,24 @@ export default class DataFile<T extends object = any> {
   }
 
   /**
+   * Sort keys in given order. Missing keys in `keys` added to the end. If no keys are provided, sorts alphabetically.
+   *
+   * @ignore
+   * @param object is the object to order keys of.
+   * @param start are ordered keys to appear at the beginning of given path when saved.
+   * @param end are ordered keys to appear at the end of given path when saved.
+   * @returns same object with ordered keys.
+   */
+  private _sortObjectKeys<T extends object>(object: T, { start = [] as string[], end = [] as string[] } = {}): T {
+    const objectKeys = Object.keys(object);
+    const allKeys = Array.from(new Set([...start, ...objectKeys.filter((k) => !end.includes(k)).sort(), ...end]));
+    const keys = allKeys.filter((k) => Object.prototype.hasOwnProperty.call(object, k));
+    if (isEqual(keys, objectKeys)) return object;
+    this.#sorted = true;
+    return assign({}, object, keys as any); // assign from `json-comment`. Assigns given keys only.
+  }
+
+  /**
    * When keys/values added which are previously does not exist, they are added to the end of the file during file write.
    * This method allows reordering of the keys in given path. Required keys may be put at the beginning and of the order.
    *
@@ -244,9 +268,8 @@ export default class DataFile<T extends object = any> {
    */
   public sortKeys(path: DataPath, { start, end }: { start?: string[]; end?: string[] } = {}): this {
     const hasPath = !(Array.isArray(path) && path.length === 0);
-    if (hasPath && this.has(path as any)) set(this.data, path as any, sortKeys(this.get(path), { start, end }));
-    else this.data = sortKeys(this.data, { start, end });
-
+    if (hasPath && this.has(path as any)) set(this.data, path as any, this._sortObjectKeys(this.get(path), { start, end }));
+    else this.data = this._sortObjectKeys(this.data, { start, end });
     return this;
   }
 
@@ -262,6 +285,7 @@ export default class DataFile<T extends object = any> {
       return;
     }
 
+    if (this.#saveIfChanged && !this.#sorted && isEqual(this.data, this.#initialData)) return;
     await outputFile(this.#path, await this.serialize(true));
     this.#logger.log("info", `File saved: ${em(this.shortPath)}`);
   }

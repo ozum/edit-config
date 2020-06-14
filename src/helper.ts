@@ -1,9 +1,8 @@
 import { cosmiconfig, Options as CosmiconfigOptions } from "cosmiconfig";
 import { extname, basename, join } from "path";
 import chalk from "chalk";
-import commentJson, { assign } from "comment-json";
+import commentJson from "comment-json";
 import yaml from "js-yaml";
-import isEqual from "lodash.isequal";
 import { readFile } from "fs-extra";
 import get from "lodash.get";
 import type DataFile from "./data-file";
@@ -45,24 +44,6 @@ export function ucFirst(string: string): string {
  */
 export function arrify<T>(input: T | T[]): T[] {
   return Array.isArray(input) ? input : [input];
-}
-
-/**
- * Sort keys in given order. Missing keys in `keys` added to the end. If no keys are provided, sorts alphabetically.
- *
- * @ignore
- * @param object is the object to order keys of.
- * @param param1 options
- * @param param1.start are ordered keys to appear at the start of object.
- * @param param1.end are ordered keys to appear at the end of object.
- * @returns same object with ordered keys.
- */
-export function sortKeys<T extends object>(object: T, { start = [] as string[], end = [] as string[] } = {}): T {
-  const objectKeys = Object.keys(object);
-  const allKeys = Array.from(new Set([...start, ...objectKeys.filter((k) => !end.includes(k)).sort(), ...end]));
-  const keys = allKeys.filter((k) => Object.prototype.hasOwnProperty.call(object, k));
-  if (isEqual(keys, objectKeys)) return object;
-  return assign({}, object, keys as any);
 }
 
 /**

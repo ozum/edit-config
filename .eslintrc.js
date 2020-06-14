@@ -38,8 +38,16 @@ module.exports = {
     "@typescript-eslint/explicit-function-return-type": ["warn", { allowExpressions: true, allowTypedFunctionExpressions: true }],
     "@typescript-eslint/no-explicit-any": "off",
     "import/extensions": ["error", "ignorePackages", { js: "never", mjs: "never", jsx: "never", ts: "never", tsx: "never" }],
+    "@typescript-eslint/no-use-before-define": "off",
+    "no-undef-init": "off", // To prevent "Variable is used before being assigned" TS errors.
   },
   overrides: [
+    {
+      files: ["*.js"],
+      rules: {
+        "@typescript-eslint/no-var-requires": "off",
+      },
+    },
     {
       files: ["*.spec.ts", "*.test.ts"],
       env: {
