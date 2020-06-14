@@ -96,6 +96,9 @@ export default class Manager {
     return Promise.all(paths.map((path) => this.load(path, options)));
   }
 
+  /**
+   * Saves all files.
+   */
   public async saveAll(): Promise<void> {
     this.#logger.log("info", `Starting to save all files.`);
     await Promise.all(Object.values(this.#files).map((file) => file.save({ throwOnReadOnly: false })));
