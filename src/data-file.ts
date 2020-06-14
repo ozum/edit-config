@@ -280,18 +280,18 @@ export default class DataFile<T extends object = any> {
     /** Whether to throw if file is read only. */
     throwOnReadOnly = true,
     /** Winston compatible logger to be used when logging. */
-    logger = this.#logger,
-  } = {}): Promise<void> {
+    logger,
+  }: { throwOnReadOnly?: boolean; logger?: Logger } = {}): Promise<void> {
     if (this.readOnly) {
       const logLevel = throwOnReadOnly ? "error" : "warn";
-      logger.log(logLevel, `File not saved: '${em(this.shortPath)}' is marked as readonly or is a 'js' file.`);
+      (logger || this.#logger).log(logLevel, `File not saved: '${em(this.shortPath)}' is marked as readonly or is a 'js' file.`);
       if (throwOnReadOnly) throw new Error(`Cannot save: ${this.#path} is marked as readonly or is a 'js' file.`);
       return;
     }
 
     if (this.#saveIfChanged && !this.#sorted && isEqual(this.data, this.#initialData)) return;
     await outputFile(this.#path, await this.serialize(true));
-    logger.log("info", `File saved: ${em(this.shortPath)}`);
+    (logger || this.#logger).log("info", `File saved: ${em(this.shortPath)}`);
   }
 
   /**
@@ -321,10 +321,10 @@ export default class DataFile<T extends object = any> {
    * @param success is whether operations is successful.
    * @param path is the path of the data modified.
    */
-  private logOperation(op: string, success: boolean, path?: DataPath, logger = this.#logger): void {
+  private logOperation(op: string, success: boolean, path?: DataPath, logger?: Logger): void {
     const not = success ? "" : "not ";
     const level = success ? "info" : "warn";
-    logger.log(level, `Key ${not}${op}: '${em(getStringPath(path || "[ROOT]"))}' in '${em(this.shortPath)}'.`);
+    (logger || this.#logger).log(level, `Key ${not}${op}: '${em(getStringPath(path || "[ROOT]"))}' in '${em(this.shortPath)}'.`);
   }
 
   //
