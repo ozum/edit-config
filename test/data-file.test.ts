@@ -85,7 +85,7 @@ describe("DataFile", () => {
     expect(eslintConfig.readOnly).toBe(true);
   });
 
-  it("shoudl throw if JS file tried to be saved.", async () => {
+  it("should throw if JS file tried to be saved.", async () => {
     await expect(eslintConfig.save()).rejects.toThrow("Cannot save");
   });
 
