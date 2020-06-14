@@ -136,21 +136,21 @@ export default class DataFile<T extends object = any> {
    *
    * @param path is data path of the property to set.
    * @param value is value to set or a function which returns value to be set.
-   * @param options are options
-   * @param options.if is the function to test whether operation should be performed. If result is false, operation is not performed.
+   * @param if is the function to test whether operation should be performed. If result is false, operation is not performed.
+   * @param logger is winston compatible logger to be used when logging.
    *
    * @example
    * dataFile
    *   .set("script.build", "tsc")
    *   .set(["scripts", "test"], "jest", { if: (value) => value !== "mocha" });
    */
-  public set(path: DataPath, value: any, { if: condition }: { if?: PredicateFunction } = {}): this {
+  public set(path: DataPath, value: any, { if: condition, logger }: { if?: PredicateFunction; logger?: Logger } = {}): this {
     const shouldDo = predicate(condition, this, path);
     if (shouldDo) {
       set(this.data, path as any, evaluate(value, this, path));
       this.#modifiedKeys.set.add(getStringPath(path));
     }
-    this.logOperation("set", shouldDo, path);
+    this.logOperation("set", shouldDo, path, logger);
     return this;
   }
 
@@ -158,21 +158,21 @@ export default class DataFile<T extends object = any> {
    * Deletes the property at `path` of file data.
    *
    * @param path is data path of the property to delete.
-   * @param options are options
-   * @param options.if is the function to test whether operation should be performed. If result is false, operation is not performed.
+   * @param if is the function to test whether operation should be performed. If result is false, operation is not performed.
+   * @param logger is winston compatible logger to be used when logging.
    *
    * @example
    * dataFile
    *   .delete("script.build")
    *   .delete(["scripts", "test"], { if: (value) => value !== "jest" });
    */
-  public delete(path: DataPath, { if: condition }: { if?: PredicateFunction } = {}): this {
+  public delete(path: DataPath, { if: condition, logger }: { if?: PredicateFunction; logger?: Logger } = {}): this {
     const shouldDo = predicate(condition, this, path);
     if (shouldDo) {
       unset(this.data, path as any);
       this.#modifiedKeys.deleted.add(getStringPath(path));
     }
-    this.logOperation("unset", shouldDo, path);
+    this.logOperation("unset", shouldDo, path, logger);
     return this;
   }
 
@@ -185,8 +185,9 @@ export default class DataFile<T extends object = any> {
    * If you would like merge root object (`this.data`), use empty array `[]` as path, because `undefined`, '' and `null` are valid object keys.
    *
    * @param path is data path of the property to delete.
-   * @param value is the object to merge given path or a function which returns object to be merged.
-   * @param predicateFn is the function to test whether operation should be performed. If result is false, operation is not performed.
+   * @param valuesAndOptions are objects to merge given path or a function which returns object to be merged.
+   * @param valuesAndOptions.predicateFn is the function to test whether operation should be performed. If result is false, operation is not performed.
+   * @param valuesAndOptions.logger is winston compatible logger to be used when logging.
    *
    * @example
    * dataFile.merge("scripts", { build: "tsc", test: "jest", }, { if: (scripts) => scripts.build !== "someCompiler" });
@@ -204,7 +205,7 @@ export default class DataFile<T extends object = any> {
       const sources = values.map((value) => evaluate(value, this, path));
       if (hasPath && !this.has(path)) this.set(path, merge({}, ...sources));
       else merge(object, ...sources);
-      this.logOperation("merged", shouldDo, path);
+      this.logOperation("merged", shouldDo, path, options.logger);
       this.#modifiedKeys.set.add(getStringPath(path));
     }
 
@@ -278,17 +279,19 @@ export default class DataFile<T extends object = any> {
   public async save({
     /** Whether to throw if file is read only. */
     throwOnReadOnly = true,
+    /** Winston compatible logger to be used when logging. */
+    logger = this.#logger,
   } = {}): Promise<void> {
     if (this.readOnly) {
       const logLevel = throwOnReadOnly ? "error" : "warn";
-      this.#logger.log(logLevel, `File not saved: '${em(this.shortPath)}' is marked as readonly or is a 'js' file.`);
+      logger.log(logLevel, `File not saved: '${em(this.shortPath)}' is marked as readonly or is a 'js' file.`);
       if (throwOnReadOnly) throw new Error(`Cannot save: ${this.#path} is marked as readonly or is a 'js' file.`);
       return;
     }
 
     if (this.#saveIfChanged && !this.#sorted && isEqual(this.data, this.#initialData)) return;
     await outputFile(this.#path, await this.serialize(true));
-    this.#logger.log("info", `File saved: ${em(this.shortPath)}`);
+    logger.log("info", `File saved: ${em(this.shortPath)}`);
   }
 
   /**
@@ -318,10 +321,10 @@ export default class DataFile<T extends object = any> {
    * @param success is whether operations is successful.
    * @param path is the path of the data modified.
    */
-  private logOperation(op: string, success: boolean, path?: DataPath): void {
+  private logOperation(op: string, success: boolean, path?: DataPath, logger = this.#logger): void {
     const not = success ? "" : "not ";
     const level = success ? "info" : "warn";
-    this.#logger.log(level, `Key ${not}${op}: '${em(getStringPath(path || "[ROOT]"))}' in '${em(this.shortPath)}'.`);
+    logger.log(level, `Key ${not}${op}: '${em(getStringPath(path || "[ROOT]"))}' in '${em(this.shortPath)}'.`);
   }
 
   //

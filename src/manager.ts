@@ -29,21 +29,6 @@ export default class Manager {
   }
 
   /**
-   * Creates a [[Manager]] clone with different options, but sharing data files for efficiency
-   * and to prevent file operation collisions.
-   *
-   * @param logger is the winston compatible Logger to be used when logging.
-   * @param saveIfChanged is whether to save file only if data is changed. Clones initial data deeply to check during save.
-   * @returns cloned [[Manager]] instance.
-   */
-  public cloneWithSharedData({ logger = this.#logger, saveIfChanged = this.#saveIfChanged } = {}): Manager {
-    const manager = new Manager({ root: this.#root, logger, saveIfChanged });
-    manager.#files = this.#files;
-    manager.#prettierConfig = this.#prettierConfig;
-    return manager;
-  }
-
-  /**
    * Reads data from given file and caches it. If file is not present, returns default data to be saved with [[DataFile.save]] or [[save]} methods.
    * If same data file requested multiple times returns cached data file. Absolute path of the file is used as cache key.
    *

@@ -74,7 +74,7 @@ export interface ManagerLoadOptions extends ManagerFromDataOptions {
 
 /** [[DataFile.fromData]] options. */
 export interface DataFileFromDataOptions extends ManagerFromDataOptions {
-  /** Winston compatible Logger to be used when logging. */
+  /** Winston compatible logger to be used when logging. */
   logger?: Logger;
   /** Root directory for file. If provided, relative path is based on this root directory. */
   rootDir?: string;
