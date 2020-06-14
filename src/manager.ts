@@ -8,8 +8,8 @@ import { getPrettierConfig, noLogger } from "./helper";
  */
 export default class Manager {
   readonly #root: string;
-  readonly #files: Record<string, DataFile> = {};
   readonly #logger: Logger;
+  #files: Record<string, DataFile> = {};
   #prettierConfig?: PrettierConfig;
   #saveIfChanged: boolean;
 
@@ -18,7 +18,7 @@ export default class Manager {
    *
    * @param root is the root path to be used for all relative file paths.
    * @param logger is the winston compatible Logger to be used when logging.
-   * @paraö saveIfChanged is whether to save file only if data is changed. Clones initial data deeply to check during save.
+   * @param saveIfChanged is whether to save file only if data is changed. Clones initial data deeply to check during save.
    */
   public constructor(
     { root = process.cwd(), logger = noLogger, saveIfChanged }: { root?: string; logger?: Logger; saveIfChanged?: boolean } = {} as any
@@ -26,6 +26,21 @@ export default class Manager {
     this.#root = root;
     this.#logger = logger;
     this.#saveIfChanged = saveIfChanged || false;
+  }
+
+  /**
+   * Creates a [[Manager]] clone with different options, but sharing data files for efficiency
+   * and to prevent file operation collisions.
+   *
+   * @param logger is the winston compatible Logger to be used when logging.
+   * @param saveIfChanged is whether to save file only if data is changed. Clones initial data deeply to check during save.
+   * @returns cloned [[Manager]] instance.
+   */
+  public cloneWithSharedData({ logger = this.#logger, saveIfChanged = this.#saveIfChanged }): Manager {
+    const manager = new Manager({ root: this.#root, logger, saveIfChanged });
+    manager.#files = this.#files;
+    manager.#prettierConfig = this.#prettierConfig;
+    return manager;
   }
 
   /**
