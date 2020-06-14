@@ -36,7 +36,7 @@ export default class Manager {
    * @param saveIfChanged is whether to save file only if data is changed. Clones initial data deeply to check during save.
    * @returns cloned [[Manager]] instance.
    */
-  public cloneWithSharedData({ logger = this.#logger, saveIfChanged = this.#saveIfChanged }): Manager {
+  public cloneWithSharedData({ logger = this.#logger, saveIfChanged = this.#saveIfChanged } = {}): Manager {
     const manager = new Manager({ root: this.#root, logger, saveIfChanged });
     manager.#files = this.#files;
     manager.#prettierConfig = this.#prettierConfig;
