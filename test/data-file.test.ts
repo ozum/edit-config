@@ -24,6 +24,11 @@ describe("DataFile", () => {
     expect(dataFile.found).toBe(false);
   });
 
+  it("should load non-data js file as empty object, because it exports empty object.", async () => {
+    const dataFile = await DataFile.load(join(__dirname, "example/a.js"));
+    expect(dataFile.data).toEqual({});
+  });
+
   it("should load non existing file without extension.", async () => {
     expect((await DataFile.load("non-existing-file")).data).toEqual({});
   });

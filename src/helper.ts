@@ -128,7 +128,10 @@ export async function readData(
 ): Promise<{ format: FileFormat; data: any; found: boolean }> {
   const formatFromFileName = getFormatFromFileName(path);
 
-  if (formatFromFileName === "js") return { data: await import(path), format: "js", found: true };
+  if (formatFromFileName === "js") {
+    const imported = await import(path);
+    return { data: imported.default ?? imported, format: "js", found: true };
+  }
   const content = await readFileTolerated(path);
 
   const result = content === undefined ? { data: defaultData, format: formatFromFileName } : parseString(content, rootDataPath);
