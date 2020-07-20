@@ -3,12 +3,12 @@ import { join } from "path";
 import { Manager, DataFile } from "../src";
 
 const root = join(__dirname, "example");
-const manager = new Manager({ root });
 
 let [packageJson, eslintConfig, huskyConfig, someConfig]: DataFile[] = [];
 
 beforeEach(async () => {
   // Reset to initial state
+  const manager = new Manager({ root });
   [packageJson, eslintConfig, someConfig] = await manager.loadAll(["package.json", ".eslintrc.js", "some-config"]);
   huskyConfig = await manager.load("husky", { cosmiconfig: { searchFrom: root } });
 });

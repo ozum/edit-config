@@ -42,7 +42,10 @@ export default class Manager {
   public async load(path: string, options: ManagerLoadOptions = {}): Promise<DataFile> {
     const fullPath = isAbsolute(path) || options.cosmiconfig ? path : join(this.#root, path);
     if (this.#prettierConfig === undefined) this.#prettierConfig = (await getPrettierConfig(fullPath)) || null;
-    if (!this.#files[path]) {
+    const cacheKey = relative("/", path);
+
+    // if (!this.#files[path]) {
+    if (!this.#files[cacheKey]) {
       const allOptions = {
         saveIfChanged: this.#saveIfChanged,
         ...options,
@@ -50,10 +53,10 @@ export default class Manager {
         rootDir: this.#root,
         prettierConfig: this.#prettierConfig,
       };
-      this.#files[relative("/", path)] = await DataFile.load(fullPath, allOptions);
+      this.#files[cacheKey] = await DataFile.load(fullPath, allOptions);
     }
 
-    return this.#files[relative("/", path)];
+    return this.#files[cacheKey];
   }
 
   /**
@@ -67,6 +70,7 @@ export default class Manager {
   public async fromData(path: string, data: object, options: ManagerFromDataOptions = {}): Promise<DataFile> {
     const fullPath = isAbsolute(path) ? path : join(this.#root, path);
     if (this.#prettierConfig === undefined) this.#prettierConfig = (await getPrettierConfig(fullPath)) || null;
+    const cacheKey = relative("/", path);
 
     const allOptions = {
       saveIfChanged: this.#saveIfChanged,
@@ -75,9 +79,9 @@ export default class Manager {
       rootDir: this.#root,
       prettierConfig: this.#prettierConfig,
     };
-    this.#files[relative("/", path)] = await DataFile.fromData(fullPath, data, allOptions);
+    this.#files[cacheKey] = await DataFile.fromData(fullPath, data, allOptions);
 
-    return this.#files[relative("/", path)];
+    return this.#files[cacheKey];
   }
 
   /**
