@@ -24,7 +24,9 @@ import {
   isManipulationOptions,
   getArrayPath,
   getFormatFromFileName,
+  isEmpty,
 } from "./helper";
+
 import {
   DataFileFromDataOptions,
   Key,
@@ -174,6 +176,37 @@ export default class DataFile<T extends object = any> {
     }
     this.logOperation("unset", shouldDo, path, logger);
     return this;
+  }
+
+  /**
+   * Deletes path recursively if value at given path is empty. (If parent path is empty after value is deleted, parent path would be deleted too.)
+   *
+   * @param path is data path of the property to delete.
+   *
+   * @example
+   * // { a: { b: { c: {} } } }
+   * dataFile.deleteEmptyPath("a.b.c"); // Result: {}
+   *
+   * // { a: { b: { c: {}, x: 1 } } }
+   * dataFile.deleteEmptyPath("a.b.c"); // Result: { a: { b: { x: 1 } } }
+   */
+  public deleteEmptyPath(path: DataPath): this {
+    const arrayPath = getArrayPath(path);
+    while (arrayPath.length > 0) {
+      if (this.isEmpty(arrayPath)) this.delete(arrayPath);
+      arrayPath.pop();
+    }
+
+    return this;
+  }
+
+  /**
+   * Tests whether given value at path is empty. Empty values are empty objects, maps, sets, string, `undefined` and `null`.
+   *
+   * @returns whether given value is empty.
+   */
+  public isEmpty(path: DataPath): boolean {
+    return isEmpty(this.get(path));
   }
 
   /**

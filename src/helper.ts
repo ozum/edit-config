@@ -5,6 +5,7 @@ import commentJson from "comment-json";
 import yaml from "js-yaml";
 import { readFile } from "fs-extra";
 import get from "lodash.get";
+import lodashIsEmpty from "lodash.isempty";
 import type DataFile from "./data-file";
 import { PredicateFunction, DataPath, FileFormat, ValueFunction, Key, Logger } from "./types";
 
@@ -162,7 +163,7 @@ export function getStringPath(path: DataPath): Key {
  */
 export function getArrayPath(path: DataPath): Key[] {
   if (Array.isArray(path)) return path;
-  return path === "string" ? path.split(".") : [path];
+  return typeof path === "string" ? path.split(".") : [path];
 }
 
 /**
@@ -259,6 +260,16 @@ export function predicate(fn: PredicateFunction | undefined, dataFile: DataFile,
  */
 export function isManipulationOptions(value: any): value is { if?: PredicateFunction } {
   return typeof value === "object" && Object.prototype.hasOwnProperty.call(value, "if");
+}
+
+/**
+ * Tests whether given value is empty. Empty values are empty objects, maps, sets, string, `undefined` and `null`.
+ *
+ * @ignore
+ * @returns whether given value is empty.
+ */
+export function isEmpty(value: any): boolean {
+  return value === undefined || value === null || value === "" || lodashIsEmpty(value);
 }
 
 /**

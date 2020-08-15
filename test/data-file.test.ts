@@ -4,12 +4,17 @@ import { Manager, DataFile } from "../src";
 
 const root = join(__dirname, "example");
 
-let [packageJson, eslintConfig, huskyConfig, someConfig]: DataFile[] = [];
+let [packageJson, eslintConfig, huskyConfig, someConfig, emptyPathTestConfig]: DataFile[] = [];
 
 beforeEach(async () => {
   // Reset to initial state
   const manager = new Manager({ root });
-  [packageJson, eslintConfig, someConfig] = await manager.loadAll(["package.json", ".eslintrc.js", "some-config"]);
+  [packageJson, eslintConfig, someConfig, emptyPathTestConfig] = await manager.loadAll([
+    "package.json",
+    ".eslintrc.js",
+    "some-config",
+    "empty-path-test.json",
+  ]);
   huskyConfig = await manager.load("husky", { cosmiconfig: { searchFrom: root } });
 });
 
@@ -141,6 +146,16 @@ describe("DataFile", () => {
     it("should not delete value if condition is false.", () => {
       packageJson.delete("name", { if: () => false });
       expect(packageJson.get("name")).toBe("example-package");
+    });
+  });
+
+  describe("deleteEmptyPath", () => {
+    it("should delete whole path recursively if empty", () => {
+      expect(emptyPathTestConfig.deleteEmptyPath("a.b.c").data).toEqual({ x: { y: { z: {}, k: 1 } } });
+    });
+
+    it("should not delete non-empty parts of the path.", () => {
+      expect(emptyPathTestConfig.deleteEmptyPath("x.y.z").data).toEqual({ a: { b: { c: {} } }, x: { y: { k: 1 } } });
     });
   });
 
